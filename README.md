@@ -24,3 +24,13 @@ web-robot-simulator/
 └── launch/
     └── robot_bringup.launch.py
 ```
+
+# To deploy
+```bash
+docker-compose up --build
+```
+
+# To stop deployment
+```bash
+docker-compose down
+```

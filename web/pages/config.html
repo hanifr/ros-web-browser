@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Configuration Management</title>
+    <style>
+        /* Configuration Management Styles */
+        .config-dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .config-sidebar {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+
+        .config-category {
+            margin-bottom: 1rem;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(71, 85, 105, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-header:hover {
+            background: rgba(71, 85, 105, 0.4);
+        }
+
+        .category-header.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-left: 4px solid #2563eb;
+        }
+
+        .category-icon {
+            color: #2563eb;
+            font-size: 1.1rem;
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .category-description {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .config-items {
+            padding-left: 1rem;
+        }
+
+        .config-item {
+            padding: 0.5rem 0.75rem;
+            margin: 0.25rem 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .config-item:hover {
+            background: rgba(71, 85, 105, 0.3);
+            color: #f8fafc;
+        }
+
+        .config-item.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .config-main {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .config-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: rgba(71, 85, 105, 0.3);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+
+        .action-btn.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .config-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .section-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: rgba(71, 85, 105, 0.5);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: #2563eb;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .param-group {
+            background: rgba(71, 85, 105, 0.1);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .param-group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .param-item {
+            margin-bottom: 1rem;
+        }
+
+        .param-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .param-value {
+            color: #10b981;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .param-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(71, 85, 105, 0.3);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 6px;
+            color: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(71, 85, 105, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: 2px solid rgba(30, 41, 59, 0.8);
+        }
+
+        .param-description {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .config-tools {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+
+        .tool-section {
+            margin-bottom: 2rem;
+        }
+
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .config-preset {
+            background: rgba(71, 85, 105, 0.2);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .config-preset:hover {
+            background: rgba(71, 85, 105, 0.4);
+            border-color: #2563eb;
+        }
+
+        .preset-name {
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 0.25rem;
+        }
+
+        .preset-description {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .preset-details {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .validation-status {
+            background: rgba(71, 85, 105, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .validation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .validation-name {
+            color: #cbd5e1;
+        }
+
+        .validation-result {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .validation-pass {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .validation-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .validation-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .config-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(71, 85, 105, 0.2);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-timestamp {
+            color: #94a3b8;
+            font-family: 'Courier New', monospace;
+        }
+
+        .history-action {
+            color: #f8fafc;
+            font-weight: 500;
+        }
+
+        .history-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .history-btn {
+            padding: 0.25rem 0.5rem;
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            border-radius: 4px;
+            color: #2563eb;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-btn:hover {
+            background: rgba(37, 99, 235, 0.4);
+            color: #60a5fa;
+        }
+
+        .backup-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(71, 85, 105, 0.3);
+            border: 2px dashed rgba(71, 85, 105, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .file-input-label:hover {
+            border-color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+            color: #cbd5e1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .config-dashboard {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .config-sidebar,
+            .config-tools {
+                max-height: none;
+                order: 2;
+            }
+            
+            .config-main {
+                order: 1;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .config-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="config-dashboard">
+        <!-- Configuration Sidebar -->
+        <div class="config-sidebar">
+            <h3 style="margin: 0 0 1.5rem 0; color: #f8fafc; text-align: center;">Configuration Categories</h3>
+            
+            <div class="config-category">
+                <div class="category-header active" onclick="selectCategory('robot')" data-category="robot">
+                    <i class="fas fa-robot category-icon"></i>
+                    <div>
+                        <div class="category-name">Robot Parameters</div>
+                        <div class="category-description">Basic robot configuration</div>
+                    </div>
+                </div>
+                <div class="config-items">
+                    <div class="config-item active" onclick="selectConfigItem('physical')">Physical Properties</div>
+                    <div class="config-item" onclick="selectConfigItem('kinematics')">Kinematics</div>
+                    <div class="config-item" onclick="selectConfigItem('limits')">Safety Limits</div>
+                </div>
+            </div>
+
+            <div class="config-category">
+                <div class="category-header" onclick="selectCategory('algorithms')" data-category="algorithms">
+                    <i class="fas fa-brain category-icon"></i>
+                    <div>
+                        <div class="category-name">Control Algorithms</div>
+                        <div class="category-description">Algorithm tuning parameters</div>
+                    </div>
+                </div>
+                <div class="config-items">
+                    <div class="config-item" onclick="selectConfigItem('pid')">PID Controller</div>
+                    <div class="config-item" onclick="selectConfigItem('pursuit')">Pure Pursuit</div>
+                    <div class="config-item" onclick="selectConfigItem('mpc')">Model Predictive</div>
+                    <div class="config-item" onclick="selectConfigItem('neural')">Neural Network</div>
+                </div>
+            </div>
+
+            <div class="config-category">
+                <div class="category-header" onclick="selectCategory('sensors')" data-category="sensors">
+                    <i class="fas fa-satellite-dish category-icon"></i>
+                    <div>
+                        <div class="category-name">Sensor Configuration</div>
+                        <div class="category-description">Sensor calibration and settings</div>
+                    </div>
+                </div>
+                <div class="config-items">
+                    <div class="config-item" onclick="selectConfigItem('lidar')">LIDAR Settings</div>
+                    <div class="config-item" onclick="selectConfigItem('ultrasonic')">Ultrasonic Sensors</div>
+                    <div class="config-item" onclick="selectConfigItem('imu')">IMU Calibration</div>
+                    <div class="config-item" onclick="selectConfigItem('camera')">Vision System</div>
+                </div>
+            </div>
+
+            <div class="config-category">
+                <div class="category-header" onclick="selectCategory('safety')" data-category="safety">
+                    <i class="fas fa-shield-alt category-icon"></i>
+                    <div>
+                        <div class="category-name">Safety Systems</div>
+                        <div class="category-description">Safety and emergency settings</div>
+                    </div>
+                </div>
+                <div class="config-items">
+                    <div class="config-item" onclick="selectConfigItem('obstacles')">Obstacle Avoidance</div>
+                    <div class="config-item" onclick="selectConfigItem('emergency')">Emergency Protocols</div>
+                    <div class="config-item" onclick="selectConfigItem('boundaries')">Operating Boundaries</div>
+                </div>
+            </div>
+
+            <div class="config-category">
+                <div class="category-header" onclick="selectCategory('interface')" data-category="interface">
+                    <i class="fas fa-desktop category-icon"></i>
+                    <div>
+                        <div class="category-name">User Interface</div>
+                        <div class="category-description">UI preferences and display</div>
+                    </div>
+                </div>
+                <div class="config-items">
+                    <div class="config-item" onclick="selectConfigItem('display')">Display Settings</div>
+                    <div class="config-item" onclick="selectConfigItem('controls')">Control Layout</div>
+                    <div class="config-item" onclick="selectConfigItem('notifications')">Notifications</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Configuration Panel -->
+        <div class="config-main">
+            <div class="config-header">
+                <div class="config-title">
+                    <i class="fas fa-robot" style="color: #2563eb;"></i>
+                    <span id="config-title">Robot Physical Properties</span>
+                </div>
+                <div class="config-actions">
+                    <button class="action-btn secondary" onclick="resetToDefaults()">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                    <button class="action-btn" onclick="validateConfig()">
+                        <i class="fas fa-check-circle"></i>
+                        Validate
+                    </button>
+                    <button class="action-btn" onclick="applyConfig()">
+                        <i class="fas fa-save"></i>
+                        Apply
+                    </button>
+                </div>
+            </div>
+
+            <div id="config-content">
+                <!-- Robot Physical Properties (Default View) -->
+                <div class="config-section">
+                    <div class="section-header">
+                        <div class="section-title">Physical Dimensions</div>
+                        <div class="section-toggle">
+                            <span>Enable Advanced</span>
+                            <div class="toggle-switch" onclick="toggleAdvanced(this)"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-grid">
+                        <div class="param-group">
+                            <div class="param-group-title">
+                                <i class="fas fa-ruler"></i>
+                                Basic Dimensions
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Robot Length</span>
+                                    <span class="param-value" id="length-value">0.45 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.2" max="1.0" step="0.01" value="0.45" 
+                                       oninput="updateParam('length', this.value)">
+                                <div class="param-description">
+                                    Overall length of the robot chassis including any protruding sensors
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Robot Width</span>
+                                    <span class="param-value" id="width-value">0.35 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.15" max="0.8" step="0.01" value="0.35" 
+                                       oninput="updateParam('width', this.value)">
+                                <div class="param-description">
+                                    Maximum width including wheels and side-mounted sensors
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Robot Height</span>
+                                    <span class="param-value" id="height-value">0.25 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.1" max="0.6" step="0.01" value="0.25" 
+                                       oninput="updateParam('height', this.value)">
+                                <div class="param-description">
+                                    Total height from ground to highest point of robot
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="param-group">
+                            <div class="param-group-title">
+                                <i class="fas fa-weight-hanging"></i>
+                                Mass Properties
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Total Mass</span>
+                                    <span class="param-value" id="mass-value">15.2 kg</span>
+                                </div>
+                                <input type="range" class="param-slider" min="5" max="50" step="0.1" value="15.2" 
+                                       oninput="updateParam('mass', this.value)">
+                                <div class="param-description">
+                                    Total robot mass including battery and payload
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Center of Mass X</span>
+                                    <span class="param-value" id="com-x-value">0.0 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="-0.2" max="0.2" step="0.01" value="0.0" 
+                                       oninput="updateParam('com-x', this.value)">
+                                <div class="param-description">
+                                    Longitudinal center of mass offset from geometric center
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Moment of Inertia</span>
+                                    <span class="param-value" id="inertia-value">2.85 kg⋅m²</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.5" max="10" step="0.01" value="2.85" 
+                                       oninput="updateParam('inertia', this.value)">
+                                <div class="param-description">
+                                    Rotational inertia about vertical axis through center of mass
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="section-header">
+                        <div class="section-title">Wheel Configuration</div>
+                    </div>
+                    
+                    <div class="config-grid">
+                        <div class="param-group">
+                            <div class="param-group-title">
+                                <i class="fas fa-circle"></i>
+                                Wheel Parameters
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Wheel Radius</span>
+                                    <span class="param-value" id="wheel-radius-value">0.08 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.03" max="0.15" step="0.001" value="0.08" 
+                                       oninput="updateParam('wheel-radius', this.value)">
+                                <div class="param-description">
+                                    Radius of drive wheels (affects speed calculations)
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Wheelbase</span>
+                                    <span class="param-value" id="wheelbase-value">0.30 m</span>
+                                </div>
+                                <input type="range" class="param-slider" min="0.15" max="0.6" step="0.01" value="0.30" 
+                                       oninput="updateParam('wheelbase', this.value)">
+                                <div class="param-description">
+                                    Distance between left and right wheels
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Gear Ratio</span>
+                                    <span class="param-value" id="gear-ratio-value">1:50</span>
+                                </div>
+                                <input type="range" class="param-slider" min="10" max="100" step="1" value="50" 
+                                       oninput="updateParam('gear-ratio', this.value)">
+                                <div class="param-description">
+                                    Motor to wheel gear reduction ratio
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="param-group">
+                            <div class="param-group-title">
+                                <i class="fas fa-cogs"></i>
+                                Drive System
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Drive Type</span>
+                                </div>
+                                <select class="param-input" onchange="updateDriveType(this.value)">
+                                    <option value="differential">Differential Drive</option>
+                                    <option value="ackermann">Ackermann Steering</option>
+                                    <option value="omnidirectional">Omnidirectional</option>
+                                    <option value="mecanum">Mecanum Wheels</option>
+                                </select>
+                                <div class="param-description">
+                                    Type of drive system affects motion model and control algorithms
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-label">
+                                    <span>Max Motor RPM</span>
+                                    <span class="param-value" id="max-rpm-value">3000 RPM</span>
+                                </div>
+                                <input type="range" class="param-slider" min="1000" max="6000" step="100" value="3000" 
+                                       oninput="updateParam('max-rpm', this.value)">
+                                <div class="param-description">
+                                    Maximum motor speed determines top robot velocity
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Tools -->
+        <div class="config-tools">
+            <!-- Configuration Presets -->
+            <div class="tool-section">
+                <div class="tool-title">
+                    <i class="fas fa-layer-group" style="color: #2563eb;"></i>
+                    Configuration Presets
+                </div>
+                
+                <div class="config-preset" onclick="loadPreset('indoor')">
+                    <div class="preset-name">Indoor Navigation</div>
+                    <div class="preset-description">Optimized for indoor environments with tight spaces</div>
+                    <div class="preset-details">Conservative speeds, high obstacle sensitivity</div>
+                </div>
+                
+                <div class="config-preset" onclick="loadPreset('outdoor')">
+                    <div class="preset-name">Outdoor Exploration</div>
+                    <div class="preset-description">Settings for outdoor terrain and longer distances</div>
+                    <div class="preset-details">Higher speeds, adaptive algorithms, robust sensors</div>
+                </div>
+                
+                <div class="config-preset" onclick="loadPreset('warehouse')">
+                    <div class="preset-name">Warehouse Operations</div>
+                    <div class="preset-description">Optimized for material handling in warehouses</div>
+                    <div class="preset-details">Precise navigation, load handling, efficiency focus</div>
+                </div>
+                
+                <div class="config-preset" onclick="loadPreset('research')">
+                    <div class="preset-name">Research Platform</div>
+                    <div class="preset-description">Flexible settings for research and development</div>
+                    <div class="preset-details">All features enabled, experimental algorithms</div>
+                </div>
+            </div>
+
+            <!-- Validation Status -->
+            <div class="tool-section">
+                <div class="tool-title">
+                    <i class="fas fa-check-circle" style="color: #2563eb;"></i>
+                    Configuration Validation
+                </div>
+                
+                <div class="validation-status" id="validation-status">
+                    <div class="validation-item">
+                        <span class="validation-name">Physical Constraints</span>
+                        <span class="validation-result validation-pass">PASS</span>
+                    </div>
+                    <div class="validation-item">
+                        <span class="validation-name">Kinematic Model</span>
+                        <span class="validation-result validation-pass">PASS</span>
+                    </div>
+                    <div class="validation-item">
+                        <span class="validation-name">Safety Limits</span>
+                        <span class="validation-result validation-warning">WARNING</span>
+                    </div>
+                    <div class="validation-item">
+                        <span class="validation-name">Sensor Compatibility</span>
+                        <span class="validation-result validation-pass">PASS</span>
+                    </div>
+                    <div class="validation-item">
+                        <span class="validation-name">Algorithm Parameters</span>
+                        <span class="validation-result validation-pass">PASS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup and Restore -->
+            <div class="tool-section">
+                <div class="tool-title">
+                    <i class="fas fa-database" style="color: #2563eb;"></i>
+                    Backup & Restore
+                </div>
+                
+                <div class="backup-controls">
+                    <button class="action-btn" onclick="exportConfig()">
+                        <i class="fas fa-download"></i>
+                        Export Configuration
+                    </button>
+                    
+                    <label for="import-config" class="file-input-label">
+                        <i class="fas fa-upload"></i>
+                        Import Configuration File
+                    </label>
+                    <input type="file" id="import-config" class="file-input" accept=".json,.cfg" onchange="importConfig(this)">
+                    
+                    <button class="action-btn secondary" onclick="createBackup()">
+                        <i class="fas fa-save"></i>
+                        Create Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Configuration History -->
+            <div class="tool-section">
+                <div class="tool-title">
+                    <i class="fas fa-history" style="color: #2563eb;"></i>
+                    Recent Changes
+                </div>
+                
+                <div class="config-history" id="config-history">
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-action">Updated wheel radius</div>
+                            <div class="history-timestamp">2024-01-15 14:32:18</div>
+                        </div>
+                        <div class="history-controls">
+                            <button class="history-btn" onclick="revertChange('wheel-radius')">Revert</button>
+                        </div>
+                    </div>
+                    
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-action">Applied indoor preset</div>
+                            <div class="history-timestamp">2024-01-15 14:28:45</div>
+                        </div>
+                        <div class="history-controls">
+                            <button class="history-btn" onclick="revertChange('preset-indoor')">Revert</button>
+                        </div>
+                    </div>
+                    
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-action">Modified PID parameters</div>
+                            <div class="history-timestamp">2024-01-15 14:15:22</div>
+                        </div>
+                        <div class="history-controls">
+                            <button class="history-btn" onclick="revertChange('pid-params')">Revert</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Advanced Configuration Management System
+        let currentCategory = 'robot';
+        let currentItem = 'physical';
+        let configHistory = [];
+        let configBackup = {};
+        let hasUnsavedChanges = false;
+
+        // Configuration data structure
+        const configData = {
+            robot: {
+                physical: {
+                    length: 0.45,
+                    width: 0.35,
+                    height: 0.25,
+                    mass: 15.2,
+                    comX: 0.0,
+                    inertia: 2.85,
+                    wheelRadius: 0.08,
+                    wheelbase: 0.30,
+                    gearRatio: 50,
+                    maxRpm: 3000,
+                    driveType: 'differential'
+                }
+            },
+            algorithms: {
+                pid: {
+                    kpLinear: 1.0,
+                    kiLinear: 0.1,
+                    kdLinear: 0.05,
+                    kpAngular: 2.5,
+                    kiAngular: 0.2,
+                    kdAngular: 0.1
+                }
+            },
+            sensors: {
+                lidar: {
+                    range: 10.0,
+                    resolution: 0.5,
+                    frequency: 10
+                }
+            }
+        };
+
+        // Configuration presets
+        const configPresets = {
+            indoor: {
+                name: 'Indoor Navigation',
+                description: 'Conservative settings for indoor environments',
+                config: {
+                    maxSpeed: 0.5,
+                    safetyDistance: 0.3,
+                    aggressiveness: 'low'
+                }
+            },
+            outdoor: {
+                name: 'Outdoor Exploration',
+                description: 'Higher performance for outdoor use',
+                config: {
+                    maxSpeed: 1.2,
+                    safetyDistance: 0.5,
+                    aggressiveness: 'high'
+                }
+            },
+            warehouse: {
+                name: 'Warehouse Operations',
+                description: 'Precision navigation for material handling',
+                config: {
+                    maxSpeed: 0.8,
+                    safetyDistance: 0.4,
+                    aggressiveness: 'medium'
+                }
+            },
+            research: {
+                name: 'Research Platform',
+                description: 'All features enabled for research',
+                config: {
+                    maxSpeed: 2.0,
+                    safetyDistance: 0.2,
+                    aggressiveness: 'experimental'
+                }
+            }
+        };
+
+        function selectCategory(category) {
+            // Update UI
+            document.querySelectorAll('.category-header').forEach(header => {
+                header.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            
+            currentCategory = category;
+            console.log(`Selected category: ${category}`);
+        }
+
+        function selectConfigItem(item) {
+            // Update UI
+            document.querySelectorAll('.config-item').forEach(configItem => {
+                configItem.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            currentItem = item;
+            loadConfigItem(item);
+            console.log(`Selected config item: ${item}`);
+        }
+
+        function loadConfigItem(item) {
+            const title = document.getElementById('config-title');
+            const content = document.getElementById('config-content');
+            
+            // Update title
+            const itemTitles = {
+                physical: 'Robot Physical Properties',
+                kinematics: 'Kinematic Parameters',
+                limits: 'Safety Limits',
+                pid: 'PID Controller Settings',
+                pursuit: 'Pure Pursuit Parameters',
+                mpc: 'Model Predictive Control',
+                neural: 'Neural Network Configuration'
+            };
+            
+            title.textContent = itemTitles[item] || 'Configuration';
+            
+            // Load specific configuration interface
+            if (item !== 'physical') {
+                // For other items, show a placeholder for now
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 4rem; color: #94a3b8;">
+                        <i class="fas fa-cogs" style="font-size: 4rem; margin-bottom: 2rem; display: block;"></i>
+                        <h3 style="color: #f8fafc; margin-bottom: 1rem;">${itemTitles[item]}</h3>
+                        <p>Configuration interface for ${item} will be implemented here.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem;">This would include specific parameters and controls for the selected subsystem.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateParam(param, value) {
+            // Update parameter value display
+            const valueElement = document.getElementById(`${param}-value`);
+            if (valueElement) {
+                let displayValue = value;
+                
+                // Format value based on parameter type
+                switch(param) {
+                    case 'length':
+                    case 'width':
+                    case 'height':
+                    case 'wheel-radius':
+                    case 'wheelbase':
+                    case 'com-x':
+                        displayValue = parseFloat(value).toFixed(2) + ' m';
+                        break;
+                    case 'mass':
+                        displayValue = parseFloat(value).toFixed(1) + ' kg';
+                        break;
+                    case 'inertia':
+                        displayValue = parseFloat(value).toFixed(2) + ' kg⋅m²';
+                        break;
+                    case 'gear-ratio':
+                        displayValue = '1:' + value;
+                        break;
+                    case 'max-rpm':
+                        displayValue = value + ' RPM';
+                        break;
+                    default:
+                        displayValue = parseFloat(value).toFixed(2);
+                }
+                
+                valueElement.textContent = displayValue;
+            }
+            
+            // Store change in history
+            addToHistory(`Updated ${param}`, value);
+            hasUnsavedChanges = true;
+            
+            console.log(`Updated ${param}: ${value}`);
+        }
+
+        function updateDriveType(driveType) {
+            console.log(`Drive type changed to: ${driveType}`);
+            addToHistory('Changed drive type', driveType);
+            hasUnsavedChanges = true;
+        }
+
+        function toggleAdvanced(toggle) {
+            toggle.classList.toggle('active');
+            const isAdvanced = toggle.classList.contains('active');
+            console.log(`Advanced mode: ${isAdvanced ? 'enabled' : 'disabled'}`);
+        }
+
+        function loadPreset(presetName) {
+            const preset = configPresets[presetName];
+            if (preset) {
+                console.log(`Loading preset: ${preset.name}`);
+                
+                // Apply preset configuration
+                // This would update all relevant parameters
+                
+                addToHistory(`Applied ${preset.name} preset`, presetName);
+                hasUnsavedChanges = true;
+                
+                showNotification(`Applied "${preset.name}" configuration preset`, 'success');
+            }
+        }
+
+        function validateConfig() {
+            console.log('Validating configuration...');
+            
+            // Simulate configuration validation
+            const validationResults = {
+                'Physical Constraints': 'pass',
+                'Kinematic Model': 'pass',
+                'Safety Limits': 'warning',
+                'Sensor Compatibility': 'pass',
+                'Algorithm Parameters': 'pass'
+            };
+            
+            // Update validation display
+            const validationStatus = document.getElementById('validation-status');
+            validationStatus.innerHTML = '';
+            
+            Object.entries(validationResults).forEach(([check, result]) => {
+                const item = document.createElement('div');
+                item.className = 'validation-item';
+                item.innerHTML = `
+                    <span class="validation-name">${check}</span>
+                    <span class="validation-result validation-${result}">${result.toUpperCase()}</span>
+                `;
+                validationStatus.appendChild(item);
+            });
+            
+            showNotification('Configuration validation completed', 'info');
+        }
+
+        function applyConfig() {
+            if (!hasUnsavedChanges) {
+                showNotification('No changes to apply', 'info');
+                return;
+            }
+            
+            console.log('Applying configuration changes...');
+            
+            // Simulate applying configuration to robot
+            setTimeout(() => {
+                hasUnsavedChanges = false;
+                addToHistory('Applied configuration changes', 'system');
+                showNotification('Configuration applied successfully', 'success');
+            }, 1000);
+        }
+
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset to default values? This will lose any unsaved changes.')) {
+                console.log('Resetting configuration to defaults...');
+                
+                // Reset all sliders to default values
+                document.querySelectorAll('.param-slider').forEach(slider => {
+                    const defaultValue = slider.getAttribute('value');
+                    slider.value = defaultValue;
+                    
+                    // Trigger update
+                    const param = slider.getAttribute('oninput').match(/'([^']+)'/)[1];
+                    updateParam(param, defaultValue);
+                });
+                
+                hasUnsavedChanges = false;
+                addToHistory('Reset to default configuration', 'system');
+                showNotification('Configuration reset to defaults', 'info');
+            }
+        }
+
+        function exportConfig() {
+            console.log('Exporting configuration...');
+            
+            // Create configuration export
+            const configExport = {
+                timestamp: new Date().toISOString(),
+                version: '1.0',
+                robot: configData.robot,
+                algorithms: configData.algorithms,
+                sensors: configData.sensors
+            };
+            
+            // Download as JSON file
+            const blob = new Blob([JSON.stringify(configExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `robot_config_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Configuration exported successfully', 'success');
+        }
+
+        function importConfig(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedConfig = JSON.parse(e.target.result);
+                    console.log('Importing configuration:', importedConfig);
+                    
+                    // Validate and apply imported configuration
+                    if (importedConfig.robot && importedConfig.version) {
+                        // Apply imported values to UI
+                        // This would update all sliders and inputs
+                        
+                        addToHistory('Imported configuration file', file.name);
+                        hasUnsavedChanges = true;
+                        showNotification('Configuration imported successfully', 'success');
+                    } else {
+                        throw new Error('Invalid configuration file format');
+                    }
+                } catch (error) {
+                    console.error('Failed to import configuration:', error);
+                    showNotification('Failed to import configuration: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function createBackup() {
+            console.log('Creating configuration backup...');
+            
+            configBackup = JSON.parse(JSON.stringify(configData));
+            const timestamp = new Date().toLocaleString();
+            
+            addToHistory('Created configuration backup', timestamp);
+            showNotification('Configuration backup created', 'success');
+        }
+
+        function addToHistory(action, details) {
+            const historyEntry = {
+                timestamp: new Date().toLocaleString(),
+                action: action,
+                details: details
+            };
+            
+            configHistory.unshift(historyEntry);
+            
+            // Keep only last 20 entries
+            if (configHistory.length > 20) {
+                configHistory = configHistory.slice(0, 20);
+            }
+            
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const historyContainer = document.getElementById('config-history');
+            historyContainer.innerHTML = '';
+            
+            configHistory.slice(0, 5).forEach((entry, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-action">${entry.action}</div>
+                        <div class="history-timestamp">${entry.timestamp}</div>
+                    </div>
+                    <div class="history-controls">
+                        <button class="history-btn" onclick="revertChange(${index})">Revert</button>
+                    </div>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        function revertChange(index) {
+            console.log(`Reverting change at index: ${index}`);
+            showNotification('Change reverted', 'info');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#2563eb'};
+                color: white;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Initialize configuration system
+        window.addEventListener('load', function() {
+            console.log('🔧 Advanced Configuration Management System initialized');
+            
+            // Add initial history entry
+            addToHistory('Configuration system initialized', 'system');
+            
+            // Load default configuration item
+            loadConfigItem('physical');
+        });
+
+        // Warn user about unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+                return 'You have unsaved configuration changes. Are you sure you want to leave?';
+            }
+        });
+    </script>
+</body>
+</html>

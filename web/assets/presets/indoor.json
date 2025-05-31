@@ -1,0 +1,22 @@
+{
+    "name": "Indoor Navigation",
+    "description": "Optimized for indoor environments",
+    "robot": {
+        "maxLinearVelocity": 0.5,
+        "maxAngularVelocity": 1.0,
+        "safetyDistance": 0.3
+    },
+    "algorithms": {
+        "pid": {
+            "kp_linear": 0.8,
+            "ki_linear": 0.1,
+            "kd_linear": 0.05
+        }
+    },
+    "sensors": {
+        "lidar": {
+            "enabled": true,
+            "range": 8.0
+        }
+    }
+}

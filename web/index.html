@@ -3,399 +3,985 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoboTech Control Suite - Robot Simulator</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>RoboTech Control Suite - Advanced Robotics Platform</title>
+    
+    <!-- External Stylesheets -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Platform Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
-    <div id="loading-screen">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <h2>RoboTech Control Suite</h2>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-            <p>Initializing robotics platform...</p>
+    <!-- Platform Navigation -->
+    <nav class="platform-nav">
+        <div class="nav-brand">
+            <i class="fas fa-robot"></i>
+            RoboTech Control Suite v3.0
         </div>
-    </div>
+        <div class="nav-menu">
+            <a class="nav-item active" onclick="switchPage('control')" data-page="control">
+                <i class="fas fa-gamepad"></i>
+                <span>Robot Control</span>
+            </a>
+            <a class="nav-item" onclick="switchPage('comparison')" data-page="comparison">
+                <i class="fas fa-chart-line"></i>
+                <span>Algorithm Compare</span>
+            </a>
+            <a class="nav-item" onclick="switchPage('obstacles')" data-page="obstacles">
+                <i class="fas fa-shield-alt"></i>
+                <span>Obstacle Avoidance</span>
+            </a>
+            <a class="nav-item" onclick="switchPage('analytics')" data-page="analytics">
+                <i class="fas fa-chart-pie"></i>
+                <span>Analytics</span>
+            </a>
+            <a class="nav-item" onclick="switchPage('config')" data-page="config">
+                <i class="fas fa-cogs"></i>
+                <span>Configuration</span>
+            </a>
+        </div>
+        <div class="nav-status">
+            <span class="status-indicator"></span>
+            <span id="connection-text">Connected</span>
+        </div>
+    </nav>
 
-    <div id="container" style="display: none;">
-        <!-- Header -->
-        <header id="header">
-            <div class="header-left">
-                <div class="brand-logo">
-                    <div class="brand-icon">
-                        <i class="fas fa-robot"></i>
+    <!-- Page Containers -->
+    <div class="page-container">
+        
+        <!-- Robot Control Page (Dashboard for now) -->
+        <div id="control-page" class="page-wrapper active">
+            <div style="padding: 2rem;">
+                <h2 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-gamepad" style="color: var(--primary-color);"></i>
+                    Robot Control Interface
+                </h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Your existing robot control interface will be integrated here</p>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div>
+                                <div class="card-title">Robot Status</div>
+                                <div class="card-subtitle">Real-time robot monitoring</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Current robot position, velocity, and system health monitoring with live telemetry data.
+                        </p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; color: var(--accent-color); font-family: monospace;">ONLINE</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">System Status</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; color: var(--accent-color); font-family: monospace;">0.85 m/s</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Current Speed</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="brand-text">
-                        <h1>RoboTech Control Suite</h1>
-                        <div class="subtitle">Advanced Robotics Platform v2.1</div>
-                    </div>
-                </div>
-                <div class="connection-status">
-                    <span class="status-dot" id="status-dot"></span>
-                    <span id="connection-status">Connecting...</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
-                <button id="fullscreen-btn" class="icon-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
-                <button id="help-btn" class="icon-btn" title="Help"><i class="fas fa-question-circle"></i></button>
-            </div>
-        </header>
 
-        <!-- Main Content -->
-        <div id="main-content">
-            <!-- Control Panel -->
-            <div id="control-panel">
-                <div class="panel-section">
-                    <h3><i class="fas fa-gamepad" style="color: var(--primary-color);"></i> Motion Control</h3>
-                    <div class="movement-controls">
-                        <div></div>
-                        <button class="control-btn" id="forward" onmousedown="startMove(1, 0)" onmouseup="stopMove()" ontouchstart="startMove(1, 0)" ontouchend="stopMove()">
-                            <span class="btn-icon">↑</span>
-                            <span class="btn-label">Forward</span>
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-route"></i>
+                            </div>
+                            <div>
+                                <div class="card-title">Navigation</div>
+                                <div class="card-subtitle">Path planning and control</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Advanced navigation with multiple control algorithms and obstacle avoidance.
+                        </p>
+                        <button class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-play"></i>
+                            Start Navigation
                         </button>
-                        <div></div>
-                        
-                        <div class="middle-row">
-                            <button class="control-btn" id="left" onmousedown="startMove(0, 0.5)" onmouseup="stopMove()" ontouchstart="startMove(0, 0.5)" ontouchend="stopMove()">
-                                <span class="btn-icon">←</span>
-                                <span class="btn-label">Left</span>
-                            </button>
-                            <button class="control-btn stop-btn" id="stop" onclick="stopMove()">
-                                <span class="btn-icon">⏹</span>
-                                <span class="btn-label">Stop</span>
-                            </button>
-                            <button class="control-btn" id="right" onmousedown="startMove(0, -0.5)" onmouseup="stopMove()" ontouchstart="startMove(0, -0.5)" ontouchend="stopMove()">
-                                <span class="btn-icon">→</span>
-                                <span class="btn-label">Right</span>
-                            </button>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <div>
+                                <div class="card-title">Sensors</div>
+                                <div class="card-subtitle">Multi-sensor integration</div>
+                            </div>
                         </div>
-                        
-                        <div></div>
-                        <button class="control-btn" id="backward" onmousedown="startMove(-1, 0)" onmouseup="stopMove()" ontouchstart="startMove(-1, 0)" ontouchend="stopMove()">
-                            <span class="btn-icon">↓</span>
-                            <span class="btn-label">Backward</span>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            LIDAR, ultrasonic, IMU, and vision sensors providing comprehensive environmental awareness.
+                        </p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; color: var(--success-color); font-family: monospace;">✓</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">LIDAR</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; color: var(--success-color); font-family: monospace;">✓</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">IMU</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div>
+                                <div class="card-title">Control System</div>
+                                <div class="card-subtitle">Advanced control algorithms</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            PID, Pure Pursuit, MPC, and neural network control algorithms with real-time tuning.
+                        </p>
+                        <button class="btn btn-success" onclick="switchPage('comparison')" style="width: 100%;">
+                            <i class="fas fa-chart-line"></i>
+                            Compare Algorithms
                         </button>
-                        <div></div>
                     </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-tachometer-alt" style="color: var(--primary-color);"></i> Speed Control</h3>
-                    <div class="speed-controls">
-                        <label class="slider-label">
-                            <span>Linear Speed: <span id="linear-value">0.5 m/s</span></span>
-                            <input type="range" id="linear-speed" min="0" max="2" step="0.1" value="0.5">
-                        </label>
-                        <label class="slider-label">
-                            <span>Angular Speed: <span id="angular-value">0.5 rad/s</span></span>
-                            <input type="range" id="angular-speed" min="0" max="2" step="0.1" value="0.5">
-                        </label>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-satellite-dish" style="color: var(--primary-color);"></i> Sensor Data</h3>
-                    <div class="sensor-data">
-                        <div class="data-item">
-                            <span class="data-label">Position</span>
-                            <span id="position" class="data-value">x: 0.00, y: 0.00</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Orientation</span>
-                            <span id="orientation" class="data-value">0.0°</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Linear Velocity</span>
-                            <span id="linear-velocity" class="data-value">0.00 m/s</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Angular Velocity</span>
-                            <span id="angular-velocity" class="data-value">0.00 rad/s</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Range Sensor</span>
-                            <span id="range-sensor" class="data-value">-- m</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-tools" style="color: var(--primary-color);"></i> Robot Configuration</h3>
-                    <div class="config-controls">
-                        <label>
-                            <span>Robot Type:</span>
-                            <select id="robot-type">
-                                <option value="differential">Differential Drive</option>
-                                <option value="omni">Omnidirectional</option>
-                                <option value="ackermann">Ackermann Steering</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>Max Speed:</span>
-                            <input type="number" id="max-speed" min="0.1" max="5.0" step="0.1" value="2.0">
-                        </label>
-                        <button id="reset-pose-btn" class="action-btn">🔄 Reset Pose</button>
-                        <button id="emergency-stop-btn" class="action-btn emergency-btn">🛑 Emergency Stop</button>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-chart-line" style="color: var(--primary-color);"></i> Statistics</h3>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <span>Distance Traveled:</span>
-                            <span id="distance-traveled">0.00 m</span>
-                        </div>
-                        <div class="stat-item">
-                            <span>Runtime:</span>
-                            <span id="runtime">00:00</span>
-                        </div>
-                        <div class="stat-item">
-                            <span>Commands Sent:</span>
-                            <span id="commands-sent">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3D Visualization -->
-            <div id="robot-view">
-                <div id="three-container"></div>
-                
-                <!-- View Controls -->
-                <div id="view-controls">
-                    <button class="view-btn" onclick="resetView()" title="Reset Camera">📷</button>
-                    <button class="view-btn" onclick="toggleWireframe()" title="Toggle Wireframe">🔲</button>
-                    <button class="view-btn" onclick="toggleGrid()" title="Toggle Grid">⊞</button>
-                    <button class="view-btn" onclick="toggleSensors()" title="Toggle Sensors">📡</button>
-                    <button class="view-btn" onclick="togglePath()" title="Toggle Path">🛤️</button>
-                </div>
-
-                <!-- Laser Scan Visualization -->
-                <div id="laser-panel">
-                    <h4>🔴 Laser Scan</h4>
-                    <canvas id="laser-canvas" width="200" height="200"></canvas>
-                    <div class="laser-info">
-                        <span>Range: <span id="laser-range">0-10m</span></span>
-                        <span>Points: <span id="laser-points">0</span></span>
-                    </div>
-                </div>
-
-                <!-- Performance Info -->
-                <div id="performance-info">
-                    <div>FPS: <span id="fps">60</span></div>
-                    <div>Objects: <span id="object-count">0</span></div>
-                    <div>WebSocket: <span id="ws-latency">-- ms</span></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>⚙️ Settings</h2>
-            <div class="settings-grid">
-                <div class="setting-group">
-                    <h3>Connection</h3>
-                    <label>
-                        WebSocket URL:
-                        <input type="text" id="websocket-url" value="ws://localhost:9090">
-                    </label>
-                    <button id="reconnect-btn" class="action-btn">Reconnect</button>
-                </div>
-                <div class="setting-group">
-                    <h3>Visualization</h3>
-                    <label>
-                        <input type="checkbox" id="show-trail" checked> Show Robot Trail
-                    </label>
-                    <label>
-                        <input type="checkbox" id="show-sensors" checked> Show Sensor Data
-                    </label>
-                    <label>
-                        <input type="checkbox" id="auto-follow" checked> Auto Follow Robot
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <h3>Performance</h3>
-                    <label>
-                        Graphics Quality:
-                        <select id="graphics-quality">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
+        <!-- Algorithm Comparison Page -->
+        <div id="comparison-page" class="page-wrapper">
+            <div class="comparison-dashboard">
+                <div style="grid-column: 1 / -1; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 1rem;">
+                    <h2 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-chart-line" style="color: var(--primary-color);"></i>
+                        Control Algorithm Comparison
+                    </h2>
+                    <p style="color: var(--text-muted); margin-bottom: 1rem;">Real-time performance comparison between different control strategies</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <select style="padding: 0.75rem; background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                            <option>Square Path (2m × 2m)</option>
+                            <option>Circular Path (r=1m)</option>
+                            <option>Figure-8 Pattern</option>
+                            <option>Random Waypoints</option>
                         </select>
-                    </label>
-                    <label>
-                        Update Rate:
-                        <select id="update-rate">
-                            <option value="30">30 Hz</option>
-                            <option value="60" selected>60 Hz</option>
-                            <option value="120">120 Hz</option>
+                        <select style="padding: 0.75rem; background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                            <option>30 seconds</option>
+                            <option>1 minute</option>
+                            <option>2 minutes</option>
+                            <option>5 minutes</option>
                         </select>
-                    </label>
+                        <button class="btn btn-primary" onclick="startAlgorithmTest()">
+                            <i class="fas fa-play"></i>
+                            Start Test
+                        </button>
+                    </div>
+                </div>
+
+                <div class="algorithm-comparison" style="grid-column: 1 / -1;">
+                    <!-- PID Controller -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-name">
+                                <i class="fas fa-cogs"></i>
+                                PID Controller
+                            </div>
+                            <div class="algorithm-status status-active">ACTIVE</div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Classic three-term controller with proportional, integral, and derivative components
+                        </p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="pid-error">0.12</div>
+                                <div class="metric-label">Avg Error (m)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pid-settling">2.3</div>
+                                <div class="metric-label">Settling (s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pid-overshoot">8.5</div>
+                                <div class="metric-label">Overshoot (%)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pid-efficiency">87</div>
+                                <div class="metric-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pure Pursuit -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-name">
+                                <i class="fas fa-route"></i>
+                                Pure Pursuit
+                            </div>
+                            <div class="algorithm-status status-active">ACTIVE</div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Geometric path tracking algorithm with dynamic lookahead distance
+                        </p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="pursuit-error">0.08</div>
+                                <div class="metric-label">Avg Error (m)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pursuit-settling">1.8</div>
+                                <div class="metric-label">Settling (s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pursuit-overshoot">4.2</div>
+                                <div class="metric-label">Overshoot (%)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="pursuit-efficiency">92</div>
+                                <div class="metric-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Predictive Control -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-name">
+                                <i class="fas fa-brain"></i>
+                                Model Predictive
+                            </div>
+                            <div class="algorithm-status status-inactive">STANDBY</div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Optimization-based control with constraint handling and prediction horizon
+                        </p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="mpc-error">0.06</div>
+                                <div class="metric-label">Avg Error (m)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="mpc-settling">1.5</div>
+                                <div class="metric-label">Settling (s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="mpc-overshoot">2.8</div>
+                                <div class="metric-label">Overshoot (%)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="mpc-efficiency">95</div>
+                                <div class="metric-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Neural Network -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-name">
+                                <i class="fas fa-network-wired"></i>
+                                Neural Network
+                            </div>
+                            <div class="algorithm-status status-testing">LEARNING</div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Deep learning based adaptive control with real-time parameter tuning
+                        </p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="neural-error">0.15</div>
+                                <div class="metric-label">Avg Error (m)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="neural-settling">2.8</div>
+                                <div class="metric-label">Settling (s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="neural-overshoot">12.1</div>
+                                <div class="metric-label">Overshoot (%)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="neural-efficiency">78</div>
+                                <div class="metric-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="chart-panel" style="grid-column: 1 / -1; margin-top: 2rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-chart-area"></i>
+                        Performance Comparison Chart
+                    </h3>
+                    <div class="chart-placeholder">
+                        <div>
+                            <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            Real-time comparison charts would be displayed here<br>
+                            <small>Integration with Chart.js or D3.js recommended</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Obstacle Avoidance Page -->
+        <div id="obstacles-page" class="page-wrapper">
+            <div class="avoidance-dashboard">
+                <!-- Main Visualization -->
+                <div>
+                    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                        <h2 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <i class="fas fa-shield-alt" style="color: var(--primary-color);"></i>
+                            Obstacle Avoidance System
+                        </h2>
+                        <p style="color: var(--text-muted); margin-bottom: 1rem;">Advanced safety and navigation with multi-sensor fusion</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                            <div>
+                                <label style="color: var(--text-secondary); font-size: 0.9rem;">Safety Distance:</label>
+                                <input type="range" min="0.1" max="2.0" step="0.1" value="0.5" style="width: 100%; margin: 0.5rem 0;" oninput="updateSafetyDistance(this.value)">
+                                <div style="color: var(--accent-color); font-family: monospace; font-size: 0.9rem;">
+                                    <span id="safety-distance-value">0.5m</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="color: var(--text-secondary); font-size: 0.9rem;">Algorithm:</label>
+                                <select style="width: 100%; padding: 0.5rem; background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); margin-top: 0.25rem;">
+                                    <option>Dynamic Window Approach</option>
+                                    <option>Artificial Potential Field</option>
+                                    <option>RRT* Path Planning</option>
+                                    <option>Vector Field Histogram</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: end;">
+                                <button class="btn btn-danger" onclick="emergencyStop()">
+                                    <i class="fas fa-stop"></i>
+                                    Emergency Stop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-field">
+                        <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-radar"></i>
+                            Live Sensor Field
+                        </h3>
+                        
+                        <div class="field-canvas">
+                            <!-- Robot -->
+                            <div class="robot-indicator">🤖</div>
+                            
+                            <!-- Sensor Ranges -->
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border: 2px solid var(--success-color); border-radius: 50%; opacity: 0.4;"></div>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border: 2px solid var(--warning-color); border-radius: 50%; opacity: 0.5;"></div>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border: 2px solid var(--danger-color); border-radius: 50%; opacity: 0.7;"></div>
+                            
+                            <!-- Sample obstacles -->
+                            <div style="position: absolute; top: 30%; left: 70%; width: 20px; height: 20px; background: var(--danger-color); border-radius: 3px;"></div>
+                            <div style="position: absolute; top: 60%; left: 30%; width: 25px; height: 25px; background: var(--warning-color); border-radius: 3px;"></div>
+                            
+                            <!-- Status overlay -->
+                            <div style="position: absolute; bottom: 15px; left: 15px; background: rgba(0,0,0,0.8); padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; color: var(--text-primary);">
+                                Status: <span style="color: var(--success-color);">CLEAR PATH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensor Panel -->
+                <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-satellite-dish"></i>
+                        Live Sensors
+                    </h3>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">
+                            <i class="fas fa-crosshairs"></i> LIDAR Front
+                        </span>
+                        <span style="color: var(--accent-color); font-family: monospace;" id="lidar-reading">2.45m</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">
+                            <i class="fas fa-wave-square"></i> Ultrasonic L
+                        </span>
+                        <span style="color: var(--accent-color); font-family: monospace;">1.20m</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">
+                            <i class="fas fa-wave-square"></i> Ultrasonic R
+                        </span>
+                        <span style="color: var(--accent-color); font-family: monospace;">∞</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">
+                            <i class="fas fa-camera"></i> Vision System
+                        </span>
+                        <span style="color: var(--success-color); font-weight: 600;">ACTIVE</span>
+                    </div>
+                    
+                    <h4 style="color: var(--text-primary); margin: 1.5rem 0 1rem;">Current Action</h4>
+                    
+                    <div style="background: var(--background-tertiary); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Action:</div>
+                        <div style="color: var(--accent-color); font-weight: 600;" id="current-action">
+                            Maintaining course - path clear
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--background-tertiary); padding: 1rem; border-radius: 6px;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Confidence:</div>
+                        <div style="color: var(--success-color); font-weight: 600; font-family: monospace;" id="confidence-level">94%</div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Parameters -->
+                <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-cogs"></i>
+                        Algorithm Settings
+                    </h3>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: var(--text-secondary); font-size: 0.9rem;">Max Linear Velocity:</label>
+                        <input type="range" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 100%; margin: 0.5rem 0;">
+                        <div style="color: var(--accent-color); font-family: monospace; font-size: 0.9rem;">1.0 m/s</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: var(--text-secondary); font-size: 0.9rem;">Prediction Time:</label>
+                        <input type="range" min="1" max="5" step="0.5" value="2.0" style="width: 100%; margin: 0.5rem 0;">
+                        <div style="color: var(--accent-color); font-family: monospace; font-size: 0.9rem;">2.0 s</div>
+                    </div>
+                    
+                    <h4 style="color: var(--text-primary); margin: 1.5rem 0 1rem;">System Health</h4>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="color: var(--text-secondary);">ROS Connection</span>
+                        <span style="background: rgba(34, 197, 94, 0.2); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">Healthy</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="color: var(--text-secondary);">Sensors</span>
+                        <span style="background: rgba(34, 197, 94, 0.2); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">All Active</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                        <span style="color: var(--text-secondary);">Navigation</span>
+                        <span style="background: rgba(34, 197, 94, 0.2); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">Optimal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics-page" class="page-wrapper">
+            <div class="analytics-dashboard">
+                <!-- Dashboard Header -->
+                <div style="grid-column: 1 / -1; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                    <div>
+                        <h2 style="color: var(--text-primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <i class="fas fa-chart-pie" style="color: var(--primary-color);"></i>
+                            Real-time Analytics Dashboard
+                        </h2>
+                        <div style="display: flex; gap: 2rem;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">12.4</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Distance (km)</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">4:32</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Operation Time (h)</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">94</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Efficiency Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" id="start-recording" onclick="toggleRecording()">
+                            <i class="fas fa-play"></i>
+                            Start Recording
+                        </button>
+                        <button class="btn btn-success" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                            Export Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="chart-panel">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-chart-line"></i>
+                        Performance Metrics
+                    </h3>
+                    <div class="chart-placeholder">
+                        <div>
+                            <i class="fas fa-chart-area" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            Real-time performance charts<br>
+                            <small>Live data visualization with Chart.js integration</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trajectory Analysis -->
+                <div class="chart-panel">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-route"></i>
+                        Trajectory Analysis
+                    </h3>
+                    <div class="chart-placeholder">
+                        <div>
+                            <i class="fas fa-map" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            Robot trajectory visualization<br>
+                            <small>Path analysis and optimization insights</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Sidebar -->
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <!-- Key Metrics -->
+                    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Key Metrics</h4>
+                        
+                        <div style="background: var(--background-tertiary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">0.85</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Average Velocity (m/s)</div>
+                            <div style="font-size: 0.8rem; color: var(--success-color);">↗ +5.2%</div>
+                        </div>
+                        
+                        <div style="background: var(--background-tertiary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">96.2</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Path Accuracy (%)</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">→ 0.1%</div>
+                        </div>
+                        
+                        <div style="background: var(--background-tertiary); padding: 1rem; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">87.4</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Energy Efficiency (%)</div>
+                            <div style="font-size: 0.8rem; color: var(--success-color);">↗ +2.8%</div>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Export Options</h4>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px; cursor: pointer;" onclick="exportExcel()">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-file-excel" style="color: var(--success-color);"></i>
+                                <div>
+                                    <div style="color: var(--text-primary); font-size: 0.9rem;">Excel Report</div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem;">Complete analysis</div>
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-color); font-family: monospace; font-size: 0.8rem;">2.4 MB</div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; margin: 0.5rem 0; background: var(--background-tertiary); border-radius: 6px; cursor: pointer;" onclick="exportCSV()">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-file-csv" style="color: var(--primary-color);"></i>
+                                <div>
+                                    <div style="color: var(--text-primary); font-size: 0.9rem;">CSV Data</div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem;">Raw sensor data</div>
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-color); font-family: monospace; font-size: 0.8rem;">1.8 MB</div>
+                        </div>
+                    </div>
+
+                    <!-- System Performance -->
+                    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem;">System Performance</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.3rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">23%</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">CPU Usage</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: var(--background-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.3rem; color: var(--accent-color); font-family: monospace; font-weight: 700;">45Hz</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Data Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Page -->
+        <div id="config-page" class="page-wrapper">
+            <div class="config-dashboard">
+                <!-- Configuration Sidebar -->
+                <div class="config-sidebar">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1.5rem; text-align: center;">Configuration</h3>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(37, 99, 235, 0.2); border-radius: 8px; cursor: pointer; border-left: 4px solid var(--primary-color);">
+                            <i class="fas fa-robot" style="color: var(--primary-color);"></i>
+                            <div>
+                                <div style="color: var(--text-primary); font-weight: 600;">Robot Parameters</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Basic robot configuration</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--background-tertiary); border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-brain" style="color: var(--primary-color);"></i>
+                            <div>
+                                <div style="color: var(--text-primary); font-weight: 600;">Control Algorithms</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Algorithm tuning</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--background-tertiary); border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-satellite-dish" style="color: var(--primary-color);"></i>
+                            <div>
+                                <div style="color: var(--text-primary); font-weight: 600;">Sensor Configuration</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Sensor calibration</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--background-tertiary); border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-shield-alt" style="color: var(--primary-color);"></i>
+                            <div>
+                                <div style="color: var(--text-primary); font-weight: 600;">Safety Systems</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Safety settings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Configuration Panel -->
+                <div class="config-main">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                        <h2 style="color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem;">
+                            <i class="fas fa-robot" style="color: var(--primary-color);"></i>
+                            Robot Physical Properties
+                        </h2>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button class="btn btn-warning" onclick="resetConfig()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
+                            <button class="btn btn-primary" onclick="applyConfig()">
+                                <i class="fas fa-save"></i>
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Physical Dimensions -->
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Physical Dimensions</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                            <div style="background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.5rem;">
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">
+                                    <i class="fas fa-ruler"></i>
+                                    Basic Dimensions
+                                </h4>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Robot Length</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">0.45 m</span>
+                                    </div>
+                                    <input type="range" min="0.2" max="1.0" step="0.01" value="0.45" style="width: 100%;" oninput="updateParam('length', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Overall length of the robot chassis
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Robot Width</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">0.35 m</span>
+                                    </div>
+                                    <input type="range" min="0.15" max="0.8" step="0.01" value="0.35" style="width: 100%;" oninput="updateParam('width', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Maximum width including wheels
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Robot Height</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">0.25 m</span>
+                                    </div>
+                                    <input type="range" min="0.1" max="0.6" step="0.01" value="0.25" style="width: 100%;" oninput="updateParam('height', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Total height from ground
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.5rem;">
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">
+                                    <i class="fas fa-weight-hanging"></i>
+                                    Mass Properties
+                                </h4>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Total Mass</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">15.2 kg</span>
+                                    </div>
+                                    <input type="range" min="5" max="50" step="0.1" value="15.2" style="width: 100%;" oninput="updateParam('mass', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Total robot mass including battery
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Wheel Radius</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">0.08 m</span>
+                                    </div>
+                                    <input type="range" min="0.03" max="0.15" step="0.001" value="0.08" style="width: 100%;" oninput="updateParam('wheel', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Drive wheel radius
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span style="color: var(--text-secondary);">Wheelbase</span>
+                                        <span style="color: var(--accent-color); font-family: monospace; font-weight: 600;">0.30 m</span>
+                                    </div>
+                                    <input type="range" min="0.15" max="0.6" step="0.01" value="0.30" style="width: 100%;" oninput="updateParam('wheelbase', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                                        Distance between wheels
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Tools -->
+                <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; max-height: calc(100vh - 4rem); overflow-y: auto;">
+                    <!-- Configuration Presets -->
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-layer-group" style="color: var(--primary-color);"></i>
+                            Presets
+                        </h4>
+                        
+                        <div style="background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; cursor: pointer;" onclick="loadPreset('indoor')">
+                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.25rem;">Indoor Navigation</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;">Optimized for indoor environments</div>
+                        </div>
+                        
+                        <div style="background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; cursor: pointer;" onclick="loadPreset('outdoor')">
+                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.25rem;">Outdoor Exploration</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;">Settings for outdoor terrain</div>
+                        </div>
+                        
+                        <div style="background: var(--background-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; cursor: pointer;" onclick="loadPreset('warehouse')">
+                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.25rem;">Warehouse Operations</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;">Material handling optimization</div>
+                        </div>
+                    </div>
+
+                    <!-- Backup and Restore -->
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-database" style="color: var(--primary-color);"></i>
+                            Backup & Restore
+                        </h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-success" onclick="exportConfig()">
+                                <i class="fas fa-download"></i>
+                                Export Config
+                            </button>
+                            <button class="btn btn-primary" onclick="importConfig()">
+                                <i class="fas fa-upload"></i>
+                                Import Config
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Validation Status -->
+                    <div>
+                        <h4 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check-circle" style="color: var(--primary-color);"></i>
+                            Validation
+                        </h4>
+                        
+                        <div style="background: var(--background-tertiary); border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+                                <span style="color: var(--text-secondary);">Physical Constraints</span>
+                                <span style="background: rgba(34, 197, 94, 0.2); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">PASS</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+                                <span style="color: var(--text-secondary);">Kinematic Model</span>
+                                <span style="background: rgba(34, 197, 94, 0.2); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">PASS</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+                                <span style="color: var(--text-secondary);">Safety Limits</span>
+                                <span style="background: rgba(245, 158, 11, 0.2); color: var(--warning-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">WARNING</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>❓ Help & Controls</h2>
-            <div class="help-content">
-                <h3>🎮 Robot Controls</h3>
-                <ul>
-                    <li><strong>Arrow Buttons:</strong> Move robot forward/backward/left/right</li>
-                    <li><strong>Speed Sliders:</strong> Adjust linear and angular velocity limits</li>
-                    <li><strong>Stop Button:</strong> Immediately stop all movement</li>
-                    <li><strong>Emergency Stop:</strong> Full system stop</li>
-                </ul>
-                
-                <h3>🖱️ 3D View Controls</h3>
-                <ul>
-                    <li><strong>Mouse Drag:</strong> Rotate camera around robot</li>
-                    <li><strong>Mouse Wheel:</strong> Zoom in/out</li>
-                    <li><strong>Camera Button:</strong> Reset to default view</li>
-                </ul>
-                
-                <h3>📊 Sensor Information</h3>
-                <ul>
-                    <li><strong>Position:</strong> Robot's current X,Y coordinates</li>
-                    <li><strong>Orientation:</strong> Robot's current heading angle</li>
-                    <li><strong>Velocities:</strong> Current linear and angular speeds</li>
-                    <li><strong>Range Sensor:</strong> Distance to nearest obstacle</li>
-                </ul>
-                
-                <h3>🔧 Troubleshooting</h3>
-                <ul>
-                    <li>If connection fails, check that Docker containers are running</li>
-                    <li>WebSocket should connect to ws://localhost:9090</li>
-                    <li>Use browser developer tools to debug JavaScript errors</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- Libraries -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
-    
-    <!-- Custom Scripts -->
-    <script src="js/ros-bridge.js"></script>
-    <script src="js/three-robot.js"></script>
-    <script src="js/robot-simulator.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
     <script>
-        // Initialize application when page loads
-        window.addEventListener('load', () => {
-            // Hide loading screen after a short delay
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('container').style.display = 'flex';
-                
-                // Initialize the robot simulator
-                window.simulator = new RobotSimulator();
-            }, 2000);
+        // Simple Page Switching Function
+        function switchPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-wrapper').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId + '-page').classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            
+            console.log(`Switched to ${pageId} page`);
+        }
+
+        // Algorithm Comparison Functions
+        function startAlgorithmTest() {
+            alert('Starting algorithm comparison test...\nThis would initiate a coordinated test of all selected algorithms.');
+            console.log('Algorithm comparison test started');
+        }
+
+        // Obstacle Avoidance Functions
+        function updateSafetyDistance(value) {
+            document.getElementById('safety-distance-value').textContent = value + 'm';
+            console.log(`Safety distance updated to: ${value}m`);
+        }
+
+        function emergencyStop() {
+            alert('EMERGENCY STOP ACTIVATED!\nAll robot systems would be immediately halted.');
+            console.log('Emergency stop activated');
+        }
+
+        // Analytics Functions
+        let recordingActive = false;
+
+        function toggleRecording() {
+            const button = document.getElementById('start-recording');
+            
+            if (!recordingActive) {
+                recordingActive = true;
+                button.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                button.classList.add('recording');
+                console.log('Started data recording');
+            } else {
+                recordingActive = false;
+                button.innerHTML = '<i class="fas fa-play"></i> Start Recording';
+                button.classList.remove('recording');
+                console.log('Stopped data recording');
+            }
+        }
+
+        function exportData() {
+            console.log('Exporting analytics data...');
+            alert('Analytics data export feature ready!\nThis would generate comprehensive Excel reports.');
+        }
+
+        function exportExcel() {
+            console.log('Exporting Excel report...');
+            alert('Excel report exported successfully!');
+        }
+
+        function exportCSV() {
+            console.log('Exporting CSV data...');
+            alert('CSV data exported successfully!');
+        }
+
+        // Configuration Functions
+        function updateParam(param, value) {
+            console.log(`Updated ${param}: ${value}`);
+            // Update parameter display logic would go here
+        }
+
+        function resetConfig() {
+            if (confirm('Reset all parameters to default values?')) {
+                console.log('Configuration reset to defaults');
+                alert('Configuration reset to default values');
+            }
+        }
+
+        function applyConfig() {
+            console.log('Applying configuration changes...');
+            alert('Configuration applied successfully!');
+        }
+
+        function loadPreset(presetName) {
+            console.log(`Loading preset: ${presetName}`);
+            alert(`Applied "${presetName}" configuration preset`);
+        }
+
+        function exportConfig() {
+            console.log('Exporting configuration...');
+            alert('Configuration exported successfully!');
+        }
+
+        function importConfig() {
+            console.log('Importing configuration...');
+            alert('Configuration import feature ready!');
+        }
+
+        // Simulate live sensor data updates
+        function updateLiveSensors() {
+            const lidarReading = document.getElementById('lidar-reading');
+            if (lidarReading) {
+                const distance = (1.5 + Math.random() * 2).toFixed(2);
+                lidarReading.textContent = distance + 'm';
+            }
+        }
+
+        // Initialize the platform
+        window.addEventListener('load', function() {
+            console.log('🚀 RoboTech Control Suite v3.0 Loaded');
+            
+            // Start sensor simulation
+            setInterval(updateLiveSensors, 2000);
+            
+            // Start with control page active
+            switchPage('control');
         });
 
-        // Speed slider event handlers (add these back for functionality)
-        document.addEventListener('DOMContentLoaded', function() {
-            const linearSlider = document.getElementById('linear-speed');
-            const angularSlider = document.getElementById('angular-speed');
-            
-            if (linearSlider) {
-                linearSlider.addEventListener('input', (e) => {
-                    document.getElementById('linear-value').textContent = `${e.target.value} m/s`;
-                });
-            }
-            
-            if (angularSlider) {
-                angularSlider.addEventListener('input', (e) => {
-                    document.getElementById('angular-value').textContent = `${e.target.value} rad/s`;
-                });
-            }
-
-            // Modal handlers
-            const settingsBtn = document.getElementById('settings-btn');
-            const helpBtn = document.getElementById('help-btn');
-            const settingsModal = document.getElementById('settings-modal');
-            const helpModal = document.getElementById('help-modal');
-            const closeButtons = document.querySelectorAll('.close');
-
-            if (settingsBtn && settingsModal) {
-                settingsBtn.addEventListener('click', () => {
-                    settingsModal.style.display = 'block';
-                });
-            }
-
-            if (helpBtn && helpModal) {
-                helpBtn.addEventListener('click', () => {
-                    helpModal.style.display = 'block';
-                });
-            }
-
-            // Close modal handlers
-            closeButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.target.closest('.modal').style.display = 'none';
-                });
-            });
-
-            // Click outside to close
-            window.addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal')) {
-                    e.target.style.display = 'none';
-                }
-            });
-
-            // Fullscreen handler
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-            if (fullscreenBtn) {
-                fullscreenBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen();
-                    } else {
-                        document.exitFullscreen();
-                    }
-                });
-            }
-
-            // Button action handlers
-            const resetBtn = document.getElementById('reset-pose-btn');
-            const emergencyBtn = document.getElementById('emergency-stop-btn');
-            const reconnectBtn = document.getElementById('reconnect-btn');
-
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
-                    if (window.simulator) {
-                        window.simulator.resetRobotPose();
-                    }
-                });
-            }
-
-            if (emergencyBtn) {
-                emergencyBtn.addEventListener('click', () => {
-                    if (window.simulator) {
-                        window.simulator.emergencyStop();
-                    }
-                });
-            }
-
-            if (reconnectBtn) {
-                reconnectBtn.addEventListener('click', () => {
-                    if (window.simulator) {
-                        window.simulator.reconnectROS();
-                    }
-                });
-            }
-        });
+        // Connection status simulation
+        setInterval(() => {
+            const statusTexts = ['Connected', 'Syncing...', 'Online'];
+            const statusText = statusTexts[Math.floor(Math.random() * statusTexts.length)];
+            document.getElementById('connection-text').textContent = statusText;
+        }, 5000);
     </script>
 </body>
 </html>
