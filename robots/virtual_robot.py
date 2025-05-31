@@ -70,6 +70,9 @@ class VirtualRobot(Node):
         echo_msg.linear.x = self.linear_vel
         echo_msg.angular.z = self.angular_vel
         self.vel_echo_pub.publish(echo_msg)
+
+        # ADD THIS TOO
+        self.get_logger().info(f'🤖 Robot velocities set: linear={self.linear_vel:.2f}, angular={self.angular_vel:.2f}')
     
     def mode_callback(self, msg):
         """Handle robot mode changes"""
@@ -137,6 +140,7 @@ class VirtualRobot(Node):
         
         # Normalize theta
         self.theta = math.atan2(math.sin(self.theta), math.cos(self.theta))
+        
         
         # Publish pose
         self.publish_pose()

@@ -20,5 +20,7 @@ web-robot-simulator/
 ├── bridge/
 │   └── rosbridge_config.yaml
 └── robots/
-    └── virtual_robot.py
+│    └── virtual_robot.py
+└── launch/
+    └── robot_bringup.launch.py
 ```

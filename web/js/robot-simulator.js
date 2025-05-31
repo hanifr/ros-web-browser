@@ -558,25 +558,53 @@ class RobotSimulator {
 
 // Global control functions
 function startMove(linear, angular) {
-    const linearSpeed = parseFloat(document.getElementById('linear-speed').value);
-    const angularSpeed = parseFloat(document.getElementById('angular-speed').value);
+    console.log(`🎮 startMove called: linear=${linear}, angular=${angular}`);
     
-    if (window.rosConnection) {
-        window.rosConnection.publishVelocity(
-            linear * linearSpeed, 
-            angular * angularSpeed
-        );
-        
-        // Update statistics
-        if (window.simulator) {
-            window.simulator.stats.commandsSent++;
-        }
+    if (!window.rosConnection) {
+        console.error('❌ ROS connection not available');
+        return;
+    }
+    
+    if (!window.rosConnection.isConnected) {
+        console.error('❌ ROS not connected');
+        return;
+    }
+    
+    if (!window.rosConnection.publishers?.cmdVel) {
+        console.error('❌ CMD Vel publisher not ready');
+        return;
+    }
+    
+    const linearSpeed = parseFloat(document.getElementById('linear-speed').value || 0.5);
+    const angularSpeed = parseFloat(document.getElementById('angular-speed').value || 0.5);
+    
+    const finalLinear = linear * linearSpeed;
+    const finalAngular = angular * angularSpeed;
+    
+    console.log(`🚀 Sending command: linear=${finalLinear}, angular=${finalAngular}`);
+    
+    try {
+        window.rosConnection.publishVelocity(finalLinear, finalAngular);
+        console.log('✅ Command sent successfully');
+    } catch (error) {
+        console.error('❌ Failed to send movement command. ACTUAL ERROR:', error);
+        console.error('Error details:', error.message, error.stack);
     }
 }
 
 function stopMove() {
-    if (window.rosConnection) {
+    console.log('🛑 stopMove called');
+    
+    if (!window.rosConnection || !window.rosConnection.isConnected) {
+        console.error('❌ ROS connection not available');
+        return;
+    }
+    
+    try {
         window.rosConnection.publishVelocity(0, 0);
+        console.log('✅ Stop command sent successfully');
+    } catch (error) {
+        console.error('❌ Failed to send stop command:', error);
     }
 }
 
@@ -611,4 +639,34 @@ function togglePath() {
     if (window.simulator && window.simulator.trailLine) {
         window.simulator.trailLine.visible = !window.simulator.trailLine.visible;
     }
+}
+
+// Global control functions (add these to robot-simulator.js)
+
+// Test function - call this in browser console
+function testRobotCommands() {
+    console.log('🧪 Testing robot commands...');
+    
+    if (!window.rosConnection) {
+        console.error('❌ No ROS connection');
+        return;
+    }
+    
+    if (!window.rosConnection.isConnected) {
+        console.error('❌ ROS not connected');
+        return;
+    }
+    
+    console.log('📤 Testing forward movement...');
+    window.rosConnection.publishVelocity(0.2, 0);
+    
+    setTimeout(() => {
+        console.log('📤 Testing turn...');
+        window.rosConnection.publishVelocity(0, 0.5);
+    }, 2000);
+    
+    setTimeout(() => {
+        console.log('📤 Testing stop...');
+        window.rosConnection.publishVelocity(0, 0);
+    }, 4000);
 }
