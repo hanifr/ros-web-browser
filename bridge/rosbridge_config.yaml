@@ -1,0 +1,185 @@
+# ROS Bridge Configuration for Web Robot Simulator
+
+# WebSocket Server Configuration
+port: 9090
+address: "0.0.0.0"
+retry_startup_delay: 5
+
+# Authentication (disabled for local development)
+authenticate: false
+auth_timeout: 5
+
+# Message throttling and compression
+fragment_timeout: 600
+delay_between_messages: 0
+max_message_size: null
+unregister_timeout: 10.0
+
+# Supported message types and services
+topics_glob: "*"
+services_glob: "*"
+params_glob: "*"
+
+# Security settings (for development only)
+bson_only_mode: false
+
+# Custom message type mappings
+type_map:
+  # Standard geometry messages
+  "geometry_msgs/Twist": "geometry_msgs/msg/Twist"
+  "geometry_msgs/PoseStamped": "geometry_msgs/msg/PoseStamped"
+  "geometry_msgs/PoseWithCovarianceStamped": "geometry_msgs/msg/PoseWithCovarianceStamped"
+  
+  # Navigation messages
+  "nav_msgs/Odometry": "nav_msgs/msg/Odometry"
+  "nav_msgs/OccupancyGrid": "nav_msgs/msg/OccupancyGrid"
+  "nav_msgs/Path": "nav_msgs/msg/Path"
+  
+  # Sensor messages
+  "sensor_msgs/LaserScan": "sensor_msgs/msg/LaserScan"
+  "sensor_msgs/Range": "sensor_msgs/msg/Range"
+  "sensor_msgs/Image": "sensor_msgs/msg/Image"
+  "sensor_msgs/CompressedImage": "sensor_msgs/msg/CompressedImage"
+  "sensor_msgs/PointCloud2": "sensor_msgs/msg/PointCloud2"
+  "sensor_msgs/Imu": "sensor_msgs/msg/Imu"
+  "sensor_msgs/JointState": "sensor_msgs/msg/JointState"
+  
+  # Standard messages
+  "std_msgs/String": "std_msgs/msg/String"
+  "std_msgs/Int32": "std_msgs/msg/Int32"
+  "std_msgs/Float64": "std_msgs/msg/Float64"
+  "std_msgs/Bool": "std_msgs/msg/Bool"
+  "std_msgs/Header": "std_msgs/msg/Header"
+
+# Topic remapping for web interface
+topic_remapping:
+  # Robot control
+  "/cmd_vel": "/cmd_vel"
+  "/cmd_vel_echo": "/cmd_vel_echo"
+  
+  # Robot pose and odometry
+  "/robot_pose": "/robot_pose"
+  "/odom": "/odom"
+  "/initialpose": "/initialpose"
+  
+  # Sensor data
+  "/scan": "/scan"
+  "/range_sensor": "/range_sensor"
+  "/camera/image_raw": "/camera/image_raw"
+  "/imu": "/imu"
+  
+  # Robot mode and status
+  "/robot_mode": "/robot_mode"
+  "/robot_status": "/robot_status"
+  "/battery_state": "/battery_state"
+
+# Service remapping
+service_remapping:
+  # ROS API services for web interface
+  "/rosapi/topics": "/rosapi/topics"
+  "/rosapi/services": "/rosapi/services"
+  "/rosapi/nodes": "/rosapi/nodes"
+  "/rosapi/topic_type": "/rosapi/topic_type"
+  "/rosapi/service_type": "/rosapi/service_type"
+  "/rosapi/get_time": "/rosapi/get_time"
+  
+  # Robot-specific services
+  "/reset_robot": "/reset_robot"
+  "/set_robot_mode": "/set_robot_mode"
+  "/emergency_stop": "/emergency_stop"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "[%(levelname)s] [%(name)s]: %(message)s"
+  
+  # Log to file (optional)
+  file:
+    enabled: false
+    path: "/var/log/rosbridge.log"
+    max_size: "10MB"
+    backup_count: 5
+
+# Performance settings
+performance:
+  # Maximum number of concurrent connections
+  max_connections: 100
+  
+  # Message queue size
+  queue_size: 100
+  
+  # Enable message compression (requires rosbridge_suite >= 0.11.0)
+  enable_compression: true
+  compression_level: 6
+  
+  # Threading settings
+  use_threading: true
+  thread_pool_size: 4
+
+# CORS settings for web browsers
+cors:
+  enabled: true
+  allowed_origins: 
+    - "http://localhost:8080"
+    - "http://127.0.0.1:8080"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+  allowed_methods: ["GET", "POST", "OPTIONS"]
+  allowed_headers: ["Content-Type", "Authorization"]
+  allow_credentials: true
+
+# Custom extensions
+extensions:
+  # Enable TF2 web republisher for coordinate transforms
+  tf2_web_republisher:
+    enabled: true
+    angular_threshold: 0.01
+    translational_threshold: 0.01
+    rate: 10.0
+  
+  # Enable action server support
+  action_servers:
+    enabled: true
+    timeout: 30.0
+  
+  # Enable parameter server access
+  parameter_server:
+    enabled: true
+    read_only: false
+
+# Debug and development settings
+debug:
+  # Enable verbose logging
+  verbose: false
+  
+  # Print all incoming/outgoing messages
+  log_messages: false
+  
+  # Enable performance profiling
+  profiling: false
+  
+  # WebSocket ping/pong interval (seconds)
+  ping_interval: 30
+  ping_timeout: 10
+
+# Rate limiting (messages per second per connection)
+rate_limiting:
+  enabled: true
+  default_rate: 100
+  
+  # Per-topic rate limits
+  topic_rates:
+    "/cmd_vel": 50
+    "/scan": 10
+    "/camera/image_raw": 5
+    "/odom": 20
+
+# Message filtering
+message_filtering:
+  # Skip messages older than this (seconds)
+  max_age: 1.0
+  
+  # Downsample high-frequency topics
+  downsampling:
+    "/odom": 10  # Every 10th message
+    "/scan": 2   # Every 2nd message

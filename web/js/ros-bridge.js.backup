@@ -1,0 +1,104 @@
+// ROS Bridge Connection Handler
+class ROSBridge {
+    constructor(url) {
+        this.url = url;
+        this.ros = null;
+        this.subscribers = {};
+        this.publishers = {};
+        
+        this.connect();
+    }
+    
+    connect() {
+        this.ros = new ROSLIB.Ros({
+            url: this.url
+        });
+        
+        this.ros.on('connection', () => {
+            console.log('Connected to ROS bridge');
+            this.updateConnectionStatus('Connected', 'green');
+            this.setupPublishers();
+        });
+        
+        this.ros.on('error', (error) => {
+            console.error('ROS connection error:', error);
+            this.updateConnectionStatus('Error', 'red');
+        });
+        
+        this.ros.on('close', () => {
+            console.log('Disconnected from ROS bridge');
+            this.updateConnectionStatus('Disconnected', 'red');
+            
+            // Attempt reconnection
+            setTimeout(() => {
+                this.connect();
+            }, 5000);
+        });
+    }
+    
+    updateConnectionStatus(status, color) {
+        const statusElement = document.getElementById('connection-status');
+        if (statusElement) {
+            statusElement.textContent = status;
+            statusElement.style.color = color;
+        }
+    }
+    
+    setupPublishers() {
+        // Command velocity publisher
+        this.publishers.cmdVel = new ROSLIB.Topic({
+            ros: this.ros,
+            name: '/cmd_vel',
+            messageType: 'geometry_msgs/Twist'
+        });
+        
+        // Robot mode publisher (for different control modes)
+        this.publishers.mode = new ROSLIB.Topic({
+            ros: this.ros,
+            name: '/robot_mode',
+            messageType: 'std_msgs/String'
+        });
+    }
+    
+    subscribe(topic, messageType, callback) {
+        const subscriber = new ROSLIB.Topic({
+            ros: this.ros,
+            name: topic,
+            messageType: messageType
+        });
+        
+        subscriber.subscribe(callback);
+        this.subscribers[topic] = subscriber;
+        
+        return subscriber;
+    }
+    
+    publishVelocity(linear, angular) {
+        if (!this.publishers.cmdVel) return;
+        
+        const twist = new ROSLIB.Message({
+            linear: {
+                x: linear,
+                y: 0,
+                z: 0
+            },
+            angular: {
+                x: 0,
+                y: 0,
+                z: angular
+            }
+        });
+        
+        this.publishers.cmdVel.publish(twist);
+    }
+    
+    setRobotMode(mode) {
+        if (!this.publishers.mode) return;
+        
+        const message = new ROSLIB.Message({
+            data: mode
+        });
+        
+        this.publishers.mode.publish(message);
+    }
+}

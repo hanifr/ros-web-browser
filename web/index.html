@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROS Web Robot Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="robot-icon">🤖</div>
+            <h2>Loading Robot Simulator...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p>Initializing Three.js and ROS connection...</p>
+        </div>
+    </div>
+
+    <div id="container" style="display: none;">
+        <!-- Header -->
+        <header id="header">
+            <div class="header-left">
+                <h1>🤖 ROS Web Robot Simulator</h1>
+                <div class="connection-status">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="connection-status">Connecting...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+                <button id="fullscreen-btn" class="icon-btn" title="Fullscreen">⛶</button>
+                <button id="help-btn" class="icon-btn" title="Help">❓</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div id="main-content">
+            <!-- Control Panel -->
+            <div id="control-panel">
+                <div class="panel-section">
+                    <h3>🎮 Robot Control</h3>
+                    <div class="movement-controls">
+                        <button class="control-btn" id="forward" onmousedown="startMove(0.5, 0)" onmouseup="stopMove()" ontouchstart="startMove(0.5, 0)" ontouchend="stopMove()">
+                            <span class="btn-icon">↑</span>
+                            <span class="btn-label">Forward</span>
+                        </button>
+                        <div class="middle-row">
+                            <button class="control-btn" id="left" onmousedown="startMove(0, 0.5)" onmouseup="stopMove()" ontouchstart="startMove(0, 0.5)" ontouchend="stopMove()">
+                                <span class="btn-icon">←</span>
+                                <span class="btn-label">Left</span>
+                            </button>
+                            <button class="control-btn stop-btn" id="stop" onclick="stopMove()">
+                                <span class="btn-icon">⏹</span>
+                                <span class="btn-label">Stop</span>
+                            </button>
+                            <button class="control-btn" id="right" onmousedown="startMove(0, -0.5)" onmouseup="stopMove()" ontouchstart="startMove(0, -0.5)" ontouchend="stopMove()">
+                                <span class="btn-icon">→</span>
+                                <span class="btn-label">Right</span>
+                            </button>
+                        </div>
+                        <button class="control-btn" id="backward" onmousedown="startMove(-0.5, 0)" onmouseup="stopMove()" ontouchstart="startMove(-0.5, 0)" ontouchend="stopMove()">
+                            <span class="btn-icon">↓</span>
+                            <span class="btn-label">Backward</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>⚡ Speed Control</h3>
+                    <div class="speed-controls">
+                        <label class="slider-label">
+                            <span>Linear Speed:</span>
+                            <input type="range" id="linear-speed" min="0" max="2" step="0.1" value="0.5">
+                            <span id="linear-value">0.5 m/s</span>
+                        </label>
+                        <label class="slider-label">
+                            <span>Angular Speed:</span>
+                            <input type="range" id="angular-speed" min="0" max="2" step="0.1" value="0.5">
+                            <span id="angular-value">0.5 rad/s</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📊 Sensor Data</h3>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <span class="data-label">Position:</span>
+                            <span id="position" class="data-value">x: 0.00, y: 0.00</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Orientation:</span>
+                            <span id="orientation" class="data-value">0.0°</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Linear Velocity:</span>
+                            <span id="linear-velocity" class="data-value">0.00 m/s</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Angular Velocity:</span>
+                            <span id="angular-velocity" class="data-value">0.00 rad/s</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Range Sensor:</span>
+                            <span id="range-sensor" class="data-value">-- m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>🔧 Robot Configuration</h3>
+                    <div class="config-controls">
+                        <label>
+                            <span>Robot Type:</span>
+                            <select id="robot-type">
+                                <option value="differential">Differential Drive</option>
+                                <option value="omni">Omnidirectional</option>
+                                <option value="ackermann">Ackermann Steering</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Max Speed:</span>
+                            <input type="number" id="max-speed" min="0.1" max="5.0" step="0.1" value="2.0">
+                        </label>
+                        <button id="reset-pose-btn" class="action-btn">🔄 Reset Pose</button>
+                        <button id="emergency-stop-btn" class="emergency-btn">🛑 Emergency Stop</button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📈 Statistics</h3>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span>Distance Traveled:</span>
+                            <span id="distance-traveled">0.00 m</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Runtime:</span>
+                            <span id="runtime">00:00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Commands Sent:</span>
+                            <span id="commands-sent">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Visualization -->
+            <div id="robot-view">
+                <div id="three-container"></div>
+                
+                <!-- View Controls -->
+                <div id="view-controls">
+                    <button class="view-btn" onclick="resetView()" title="Reset Camera">📷</button>
+                    <button class="view-btn" onclick="toggleWireframe()" title="Toggle Wireframe">🔲</button>
+                    <button class="view-btn" onclick="toggleGrid()" title="Toggle Grid">⊞</button>
+                    <button class="view-btn" onclick="toggleSensors()" title="Toggle Sensors">📡</button>
+                    <button class="view-btn" onclick="togglePath()" title="Toggle Path">🛤️</button>
+                </div>
+
+                <!-- Laser Scan Visualization -->
+                <div id="laser-panel">
+                    <h4>🔴 Laser Scan</h4>
+                    <canvas id="laser-canvas" width="200" height="200"></canvas>
+                    <div class="laser-info">
+                        <span>Range: <span id="laser-range">0-10m</span></span>
+                        <span>Points: <span id="laser-points">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Performance Info -->
+                <div id="performance-info">
+                    <div>FPS: <span id="fps">60</span></div>
+                    <div>Objects: <span id="object-count">0</span></div>
+                    <div>WebSocket: <span id="ws-latency">-- ms</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>⚙️ Settings</h2>
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <h3>Connection</h3>
+                    <label>
+                        WebSocket URL:
+                        <input type="text" id="websocket-url" value="ws://localhost:9090">
+                    </label>
+                    <button id="reconnect-btn">Reconnect</button>
+                </div>
+                <div class="setting-group">
+                    <h3>Visualization</h3>
+                    <label>
+                        <input type="checkbox" id="show-trail" checked> Show Robot Trail
+                    </label>
+                    <label>
+                        <input type="checkbox" id="show-sensors" checked> Show Sensor Data
+                    </label>
+                    <label>
+                        <input type="checkbox" id="auto-follow" checked> Auto Follow Robot
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <h3>Performance</h3>
+                    <label>
+                        Graphics Quality:
+                        <select id="graphics-quality">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </label>
+                    <label>
+                        Update Rate:
+                        <select id="update-rate">
+                            <option value="30">30 Hz</option>
+                            <option value="60" selected>60 Hz</option>
+                            <option value="120">120 Hz</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>❓ Help & Controls</h2>
+            <div class="help-content">
+                <h3>🎮 Robot Controls</h3>
+                <ul>
+                    <li><strong>Arrow Buttons:</strong> Move robot forward/backward/left/right</li>
+                    <li><strong>Speed Sliders:</strong> Adjust linear and angular velocity limits</li>
+                    <li><strong>Stop Button:</strong> Immediately stop all movement</li>
+                    <li><strong>Emergency Stop:</strong> Full system stop</li>
+                </ul>
+                
+                <h3>🖱️ 3D View Controls</h3>
+                <ul>
+                    <li><strong>Mouse Drag:</strong> Rotate camera around robot</li>
+                    <li><strong>Mouse Wheel:</strong> Zoom in/out</li>
+                    <li><strong>Camera Button:</strong> Reset to default view</li>
+                </ul>
+                
+                <h3>📊 Sensor Information</h3>
+                <ul>
+                    <li><strong>Position:</strong> Robot's current X,Y coordinates</li>
+                    <li><strong>Orientation:</strong> Robot's current heading angle</li>
+                    <li><strong>Velocities:</strong> Current linear and angular speeds</li>
+                    <li><strong>Range Sensor:</strong> Distance to nearest obstacle</li>
+                </ul>
+                
+                <h3>🔧 Troubleshooting</h3>
+                <ul>
+                    <li>If connection fails, check that Docker containers are running</li>
+                    <li>WebSocket should connect to ws://localhost:9090</li>
+                    <li>Use browser developer tools to debug JavaScript errors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/ros-bridge.js"></script>
+    <script src="js/three-robot.js"></script>
+    <script src="js/robot-simulator.js"></script>
+
+    <script>
+        // Initialize application when page loads
+        window.addEventListener('load', () => {
+            // Hide loading screen after a short delay
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('container').style.display = 'flex';
+                
+                // Initialize the robot simulator
+                window.simulator = new RobotSimulator();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

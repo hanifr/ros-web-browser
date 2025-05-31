@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Robot Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="container">
+        <!-- Control Panel -->
+        <div id="control-panel">
+            <h2>Robot Control</h2>
+            <div class="connection-status">
+                Status: <span id="connection-status">Disconnected</span>
+            </div>
+            
+            <div class="robot-controls">
+                <h3>Movement</h3>
+                <div class="movement-controls">
+                    <button id="forward" onmousedown="startMove(0.5, 0)" onmouseup="stopMove()">↑</button>
+                    <div>
+                        <button id="left" onmousedown="startMove(0, 0.5)" onmouseup="stopMove()">←</button>
+                        <button id="stop" onclick="stopMove()">⏹</button>
+                        <button id="right" onmousedown="startMove(0, -0.5)" onmouseup="stopMove()">→</button>
+                    </div>
+                    <button id="backward" onmousedown="startMove(-0.5, 0)" onmouseup="stopMove()">↓</button>
+                </div>
+                
+                <h3>Speed Control</h3>
+                <label>Linear: <input type="range" id="linear-speed" min="0" max="2" step="0.1" value="0.5"></label>
+                <label>Angular: <input type="range" id="angular-speed" min="0" max="2" step="0.1" value="0.5"></label>
+            </div>
+            
+            <div class="sensor-data">
+                <h3>Sensor Data</h3>
+                <div>Position: <span id="position">x: 0, y: 0, z: 0</span></div>
+                <div>Orientation: <span id="orientation">0°</span></div>
+                <div>Velocity: <span id="velocity">0 m/s</span></div>
+            </div>
+            
+            <div class="robot-config">
+                <h3>Robot Configuration</h3>
+                <label>Robot Type:
+                    <select id="robot-type">
+                        <option value="differential">Differential Drive</option>
+                        <option value="omni">Omnidirectional</option>
+                        <option value="ackermann">Ackermann</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <!-- 3D Visualization -->
+        <div id="robot-view">
+            <div id="three-container"></div>
+            <div id="view-controls">
+                <button onclick="resetView()">Reset View</button>
+                <button onclick="toggleWireframe()">Wireframe</button>
+                <button onclick="toggleGrid()">Grid</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/three-robot.js"></script>
+    <script src="js/ros-bridge.js"></script>
+    <script src="js/robot-simulator.js"></script>
+</body>
+</html>

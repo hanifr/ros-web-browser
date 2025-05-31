@@ -1,0 +1,104 @@
+version: '3.8'
+
+networks:
+  robot_web_prod:
+    driver: bridge
+
+services:
+  # Production ROS 2 Backend
+  ros2-web-bridge-prod:
+    build:
+      context: ..
+      dockerfile: Dockerfile.web-bridge
+    container_name: ros2-web-bridge-prod
+    environment:
+      - ROS_DOMAIN_ID=42
+      - PYTHONUNBUFFERED=1
+    networks:
+      - robot_web_prod
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../bridge:/opt/bridge:ro
+      - ../robots:/opt/robots:ro
+      - ../launch:/opt/launch:ro
+      - robot_logs:/var/log/robot
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        cd /opt/robots &&
+        python3 virtual_robot.py &
+        sleep 3 &&
+        ros2 launch /opt/launch/advanced_robot.launch.py
+      "
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ros2", "node", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Production Web Server
+  web-interface-prod:
+    image: nginx:alpine
+    container_name: robot-web-ui-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../web:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - ros2-web-bridge-prod
+    networks:
+      - robot_web_prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Monitoring and logging
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: robot-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - robot_web_prod
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: robot-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - robot_web_prod
+    restart: unless-stopped
+
+volumes:
+  robot_logs:
+  prometheus_data:
+  grafana_data:

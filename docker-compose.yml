@@ -1,0 +1,47 @@
+# version: '3.8'
+
+networks:
+  robot_web:
+    driver: bridge
+
+services:
+  # ROS 2 Backend with Web Bridge
+  ros2-web-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.web-bridge
+    container_name: ros2-web-bridge
+    environment:
+      - ROS_DOMAIN_ID=42
+    networks:
+      - robot_web
+    ports:
+      - "9090:9090"   # WebSocket
+      - "11311:11311" # ROS Master (if needed)
+    volumes:
+      - ./bridge:/opt/bridge
+      - ./robots:/opt/robots
+      - ./launch:/opt/launch
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        cd /opt/robots &&
+        python3 virtual_robot.py &
+        sleep 3 &&
+        ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090
+      "
+    restart: unless-stopped
+
+  # Web Server for Robot Interface
+  web-interface:
+    image: nginx:alpine
+    container_name: robot-web-ui
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html
+    depends_on:
+      - ros2-web-bridge
+    networks:
+      - robot_web
+    restart: unless-stopped

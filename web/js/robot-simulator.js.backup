@@ -1,0 +1,226 @@
+// Robot Simulator Main Controller
+class RobotSimulator {
+    constructor() {
+        this.robot = null;
+        this.scene = null;
+        this.isMoving = false;
+        this.currentLinear = 0;
+        this.currentAngular = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        // Initialize Three.js scene
+        this.initThreeJS();
+        
+        // Initialize ROS connection
+        this.initROS();
+        
+        // Setup robot
+        this.createRobot();
+        
+        // Start animation loop
+        this.animate();
+    }
+    
+    initThreeJS() {
+        // Scene setup
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x222222);
+        
+        // Camera setup
+        this.camera = new THREE.PerspectiveCamera(
+            75, 
+            window.innerWidth / window.innerHeight, 
+            0.1, 
+            1000
+        );
+        this.camera.position.set(5, 5, 5);
+        
+        // Renderer setup
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(window.innerWidth * 0.7, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        document.getElementById('three-container').appendChild(this.renderer.domElement);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        this.scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 10, 5);
+        directionalLight.castShadow = true;
+        this.scene.add(directionalLight);
+        
+        // Ground plane
+        const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+        
+        // Grid helper
+        const gridHelper = new THREE.GridHelper(20, 20);
+        this.scene.add(gridHelper);
+        
+        // Controls
+        this.setupControls();
+    }
+    
+    initROS() {
+        // ROS connection (implemented in ros-bridge.js)
+        window.rosConnection = new ROSBridge('ws://localhost:9090');
+        
+        // Subscribe to robot pose updates
+        window.rosConnection.subscribe('/robot_pose', 'geometry_msgs/PoseStamped', 
+            (message) => {
+                this.updateRobotPose(message.pose);
+            });
+            
+        // Subscribe to velocity commands echo
+        window.rosConnection.subscribe('/cmd_vel_echo', 'geometry_msgs/Twist',
+            (message) => {
+                this.updateVelocityDisplay(message);
+            });
+    }
+    
+    createRobot() {
+        this.robot = new RobotModel();
+        this.scene.add(this.robot.group);
+    }
+    
+    setupControls() {
+        // Mouse controls for camera
+        this.controls = {
+            mouseX: 0,
+            mouseY: 0,
+            isMouseDown: false
+        };
+        
+        const container = this.renderer.domElement;
+        
+        container.addEventListener('mousedown', (e) => {
+            this.controls.isMouseDown = true;
+            this.controls.mouseX = e.clientX;
+            this.controls.mouseY = e.clientY;
+        });
+        
+        container.addEventListener('mouseup', () => {
+            this.controls.isMouseDown = false;
+        });
+        
+        container.addEventListener('mousemove', (e) => {
+            if (!this.controls.isMouseDown) return;
+            
+            const deltaX = e.clientX - this.controls.mouseX;
+            const deltaY = e.clientY - this.controls.mouseY;
+            
+            // Rotate camera around robot
+            const spherical = new THREE.Spherical();
+            spherical.setFromVector3(this.camera.position);
+            spherical.theta -= deltaX * 0.01;
+            spherical.phi += deltaY * 0.01;
+            spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+            
+            this.camera.position.setFromSpherical(spherical);
+            this.camera.lookAt(0, 0, 0);
+            
+            this.controls.mouseX = e.clientX;
+            this.controls.mouseY = e.clientY;
+        });
+        
+        // Zoom with mouse wheel
+        container.addEventListener('wheel', (e) => {
+            const distance = this.camera.position.length();
+            const scale = e.deltaY > 0 ? 1.1 : 0.9;
+            this.camera.position.multiplyScalar(scale);
+        });
+    }
+    
+    updateRobotPose(pose) {
+        if (!this.robot) return;
+        
+        this.robot.group.position.set(
+            pose.position.x,
+            pose.position.z,
+            -pose.position.y  // Convert ROS coordinates to Three.js
+        );
+        
+        // Convert quaternion
+        this.robot.group.quaternion.set(
+            pose.orientation.x,
+            pose.orientation.z,
+            -pose.orientation.y,
+            pose.orientation.w
+        );
+        
+        // Update UI
+        document.getElementById('position').textContent = 
+            `x: ${pose.position.x.toFixed(2)}, y: ${pose.position.y.toFixed(2)}, z: ${pose.position.z.toFixed(2)}`;
+    }
+    
+    updateVelocityDisplay(twist) {
+        const linear = Math.sqrt(
+            twist.linear.x ** 2 + 
+            twist.linear.y ** 2 + 
+            twist.linear.z ** 2
+        );
+        
+        document.getElementById('velocity').textContent = `${linear.toFixed(2)} m/s`;
+        
+        const angular = Math.atan2(twist.angular.z, 1) * 180 / Math.PI;
+        document.getElementById('orientation').textContent = `${angular.toFixed(1)}°`;
+    }
+    
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        
+        // Update robot animation
+        if (this.robot) {
+            this.robot.update();
+        }
+        
+        this.renderer.render(this.scene, this.camera);
+    }
+}
+
+// Control functions
+function startMove(linear, angular) {
+    const linearSpeed = parseFloat(document.getElementById('linear-speed').value);
+    const angularSpeed = parseFloat(document.getElementById('angular-speed').value);
+    
+    window.rosConnection.publishVelocity(
+        linear * linearSpeed, 
+        angular * angularSpeed
+    );
+}
+
+function stopMove() {
+    window.rosConnection.publishVelocity(0, 0);
+}
+
+function resetView() {
+    if (window.simulator) {
+        window.simulator.camera.position.set(5, 5, 5);
+        window.simulator.camera.lookAt(0, 0, 0);
+    }
+}
+
+function toggleWireframe() {
+    if (window.simulator && window.simulator.robot) {
+        window.simulator.robot.toggleWireframe();
+    }
+}
+
+function toggleGrid() {
+    // Implementation for grid toggle
+}
+
+// Initialize when page loads
+window.addEventListener('load', () => {
+    window.simulator = new RobotSimulator();
+});

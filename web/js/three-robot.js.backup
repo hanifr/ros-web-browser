@@ -1,0 +1,118 @@
+// Three.js Robot Model
+class RobotModel {
+    constructor() {
+        this.group = new THREE.Group();
+        this.wheels = [];
+        this.sensors = [];
+        this.wireframeMode = false;
+        
+        this.createRobot();
+    }
+    
+    createRobot() {
+        // Robot body
+        const bodyGeometry = new THREE.BoxGeometry(0.6, 0.2, 0.4);
+        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x4444ff });
+        this.body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        this.body.position.y = 0.1;
+        this.body.castShadow = true;
+        this.group.add(this.body);
+        
+        // Wheels
+        this.createWheels();
+        
+        // Sensors
+        this.createSensors();
+        
+        // Robot "face" (front indicator)
+        const faceGeometry = new THREE.ConeGeometry(0.05, 0.1, 8);
+        const faceMaterial = new THREE.MeshLambertMaterial({ color: 0xff4444 });
+        this.face = new THREE.Mesh(faceGeometry, faceMaterial);
+        this.face.position.set(0.25, 0.15, 0);
+        this.face.rotation.z = Math.PI / 2;
+        this.group.add(this.face);
+    }
+    
+    createWheels() {
+        const wheelGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.05, 16);
+        const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+        
+        // Left wheel
+        const leftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        leftWheel.position.set(0, 0.08, 0.25);
+        leftWheel.rotation.x = Math.PI / 2;
+        this.wheels.push(leftWheel);
+        this.group.add(leftWheel);
+        
+        // Right wheel
+        const rightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        rightWheel.position.set(0, 0.08, -0.25);
+        rightWheel.rotation.x = Math.PI / 2;
+        this.wheels.push(rightWheel);
+        this.group.add(rightWheel);
+        
+        // Caster wheel
+        const casterGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+        const caster = new THREE.Mesh(casterGeometry, wheelMaterial);
+        caster.position.set(-0.25, 0.03, 0);
+        this.group.add(caster);
+    }
+    
+    createSensors() {
+        // LIDAR sensor
+        const lidarGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.08, 16);
+        const lidarMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
+        this.lidar = new THREE.Mesh(lidarGeometry, lidarMaterial);
+        this.lidar.position.set(0, 0.25, 0);
+        this.group.add(this.lidar);
+        
+        // Camera
+        const cameraGeometry = new THREE.BoxGeometry(0.04, 0.03, 0.02);
+        const cameraMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 });
+        this.camera = new THREE.Mesh(cameraGeometry, cameraMaterial);
+        this.camera.position.set(0.28, 0.15, 0);
+        this.group.add(this.camera);
+        
+        // Range sensors
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const sensorGeometry = new THREE.SphereGeometry(0.01, 8, 8);
+            const sensorMaterial = new THREE.MeshLambertMaterial({ color: 0xff6666 });
+            const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
+            
+            const radius = 0.32;
+            sensor.position.set(
+                Math.cos(angle) * radius,
+                0.1,
+                Math.sin(angle) * radius
+            );
+            
+            this.sensors.push(sensor);
+            this.group.add(sensor);
+        }
+    }
+    
+    update() {
+        // Rotate LIDAR
+        if (this.lidar) {
+            this.lidar.rotation.y += 0.05;
+        }
+        
+        // Animate sensors (blinking effect)
+        const time = Date.now() * 0.001;
+        this.sensors.forEach((sensor, i) => {
+            const intensity = (Math.sin(time * 2 + i) + 1) * 0.5;
+            sensor.material.emissive.setRGB(intensity * 0.2, 0, 0);
+        });
+    }
+    
+    toggleWireframe() {
+        this.wireframeMode = !this.wireframeMode;
+        
+        this.group.traverse((child) => {
+            if (child.material) {
+                child.material.wireframe = this.wireframeMode;
+            }
+        });
+    }
+}
