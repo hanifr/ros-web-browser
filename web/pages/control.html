@@ -1,14 +1,29 @@
+<!-- control.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoboTech Control Suite - Robot Simulator</title>
-    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Fixed CSS paths - go up one directory with ../ -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/components.css">
+    
+    <!-- External CSS (these are fine) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
 </head>
 <body>
+    <!-- Back Button to Index -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+        <a href="../index.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+
     <div id="loading-screen">
         <div class="loading-content">
             <div class="loading-spinner"></div>
@@ -283,14 +298,14 @@
         </div>
     </div>
 
-    <!-- Libraries -->
+    <!-- External Libraries (these are fine) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
     
-    <!-- Custom Scripts -->
-    <script src="js/ros-bridge.js"></script>
-    <script src="js/three-robot.js"></script>
-    <script src="js/robot-simulator.js"></script>
+    <!-- Fixed JavaScript paths - go up one directory with ../ -->
+    <script src="../js/ros-bridge.js"></script>
+    <script src="../js/three-robot.js"></script>
+    <script src="../js/robot-simulator.js"></script>
 
     <script>
         // Initialize application when page loads
