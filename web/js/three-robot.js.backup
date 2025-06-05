@@ -1,118 +1,1171 @@
-// Three.js Robot Model
-class RobotModel {
+/**
+ * Three.js Robot Visualization - 3D rendering and visualization of robot and environment
+ * Provides real-time 3D visualization of robot movement, workspace, and system status
+ */
+
+class ThreeRobotVisualization {
     constructor() {
-        this.group = new THREE.Group();
-        this.wheels = [];
-        this.sensors = [];
-        this.wireframeMode = false;
+        // Three.js core components
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.controls = null;
         
-        this.createRobot();
+        // Robot 3D objects
+        this.robotGroup = null;
+        this.robotBody = null;
+        this.robotWheels = { left: null, right: null };
+        this.robotSensors = { lidar: null, camera: null };
+        
+        // Environment objects
+        this.environmentGroup = null;
+        this.locations = new Map();
+        this.obstacles = new Map();
+        this.pathLines = [];
+        this.targetIndicator = null;
+        
+        // Visual effects
+        this.particles = null;
+        this.trails = [];
+        this.statusIndicators = new Map();
+        
+        // Animation and rendering
+        this.animationId = null;
+        this.isRendering = false;
+        this.lastUpdateTime = Date.now();
+        this.frameCount = 0;
+        
+        // Robot state tracking
+        this.robotState = {
+            position: { x: 0, y: 0, z: 0 },
+            orientation: 0,
+            velocity: { linear: 0, angular: 0 },
+            targetPosition: null,
+            isMoving: false
+        };
+        
+        // Camera settings
+        this.cameraSettings = {
+            followRobot: true,
+            viewMode: 'THIRD_PERSON', // THIRD_PERSON, TOP_DOWN, FIRST_PERSON, FREE
+            distance: 5,
+            height: 3,
+            smoothing: 0.1
+        };
+        
+        // Rendering settings
+        this.renderSettings = {
+            enableShadows: true,
+            enableAntialiasing: true,
+            enablePostProcessing: false,
+            targetFPS: 60,
+            renderQuality: 'HIGH' // LOW, MEDIUM, HIGH
+        };
+        
+        // Performance monitoring
+        this.performance = {
+            fps: 0,
+            frameTime: 0,
+            renderTime: 0,
+            lastFPSUpdate: Date.now()
+        };
+        
+        this.initialize();
     }
     
-    createRobot() {
-        // Robot body
-        const bodyGeometry = new THREE.BoxGeometry(0.6, 0.2, 0.4);
-        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x4444ff });
-        this.body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        this.body.position.y = 0.1;
-        this.body.castShadow = true;
-        this.group.add(this.body);
+    /**
+     * Initialize the 3D visualization system
+     */
+    async initialize() {
+        console.log('🎨 Initializing 3D Robot Visualization...');
         
-        // Wheels
-        this.createWheels();
-        
-        // Sensors
-        this.createSensors();
-        
-        // Robot "face" (front indicator)
-        const faceGeometry = new THREE.ConeGeometry(0.05, 0.1, 8);
-        const faceMaterial = new THREE.MeshLambertMaterial({ color: 0xff4444 });
-        this.face = new THREE.Mesh(faceGeometry, faceMaterial);
-        this.face.position.set(0.25, 0.15, 0);
-        this.face.rotation.z = Math.PI / 2;
-        this.group.add(this.face);
-    }
-    
-    createWheels() {
-        const wheelGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.05, 16);
-        const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-        
-        // Left wheel
-        const leftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        leftWheel.position.set(0, 0.08, 0.25);
-        leftWheel.rotation.x = Math.PI / 2;
-        this.wheels.push(leftWheel);
-        this.group.add(leftWheel);
-        
-        // Right wheel
-        const rightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        rightWheel.position.set(0, 0.08, -0.25);
-        rightWheel.rotation.x = Math.PI / 2;
-        this.wheels.push(rightWheel);
-        this.group.add(rightWheel);
-        
-        // Caster wheel
-        const casterGeometry = new THREE.SphereGeometry(0.03, 8, 8);
-        const caster = new THREE.Mesh(casterGeometry, wheelMaterial);
-        caster.position.set(-0.25, 0.03, 0);
-        this.group.add(caster);
-    }
-    
-    createSensors() {
-        // LIDAR sensor
-        const lidarGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.08, 16);
-        const lidarMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
-        this.lidar = new THREE.Mesh(lidarGeometry, lidarMaterial);
-        this.lidar.position.set(0, 0.25, 0);
-        this.group.add(this.lidar);
-        
-        // Camera
-        const cameraGeometry = new THREE.BoxGeometry(0.04, 0.03, 0.02);
-        const cameraMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 });
-        this.camera = new THREE.Mesh(cameraGeometry, cameraMaterial);
-        this.camera.position.set(0.28, 0.15, 0);
-        this.group.add(this.camera);
-        
-        // Range sensors
-        for (let i = 0; i < 8; i++) {
-            const angle = (i / 8) * Math.PI * 2;
-            const sensorGeometry = new THREE.SphereGeometry(0.01, 8, 8);
-            const sensorMaterial = new THREE.MeshLambertMaterial({ color: 0xff6666 });
-            const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
+        try {
+            // Create container
+            this.createContainer();
             
-            const radius = 0.32;
-            sensor.position.set(
-                Math.cos(angle) * radius,
-                0.1,
-                Math.sin(angle) * radius
-            );
+            // Initialize Three.js components
+            this.initializeScene();
+            this.initializeCamera();
+            this.initializeRenderer();
+            this.initializeLighting();
+            this.initializeControls();
             
-            this.sensors.push(sensor);
-            this.group.add(sensor);
+            // Create 3D objects
+            await this.createRobot();
+            await this.createEnvironment();
+            this.createEffects();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Start rendering
+            this.startRendering();
+            
+            console.log('✅ 3D Robot Visualization initialized');
+            
+        } catch (error) {
+            console.error('❌ 3D Visualization initialization failed:', error);
         }
     }
     
-    update() {
-        // Rotate LIDAR
-        if (this.lidar) {
-            this.lidar.rotation.y += 0.05;
+    /**
+     * Create or find the container for the 3D scene
+     */
+    createContainer() {
+        // Try to find existing container
+        this.container = document.getElementById('three-robot-container');
+        
+        if (!this.container) {
+            // Create container dynamically
+            this.container = document.createElement('div');
+            this.container.id = 'three-robot-container';
+            this.container.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                width: 400px;
+                height: 300px;
+                background: rgba(0, 0, 0, 0.8);
+                border: 2px solid #007acc;
+                border-radius: 8px;
+                z-index: 1000;
+                overflow: hidden;
+            `;
+            
+            // Add to body
+            document.body.appendChild(this.container);
+            
+            // Add toggle button
+            this.createToggleButton();
         }
         
-        // Animate sensors (blinking effect)
-        const time = Date.now() * 0.001;
-        this.sensors.forEach((sensor, i) => {
-            const intensity = (Math.sin(time * 2 + i) + 1) * 0.5;
-            sensor.material.emissive.setRGB(intensity * 0.2, 0, 0);
+        // Add resize handle
+        this.addResizeHandle();
+    }
+    
+    /**
+     * Create toggle button for the 3D view
+     */
+    createToggleButton() {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.innerHTML = '📐 3D View';
+        toggleBtn.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 122, 204, 0.8);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 1001;
+        `;
+        
+        toggleBtn.onclick = () => this.toggleVisibility();
+        this.container.appendChild(toggleBtn);
+    }
+    
+    /**
+     * Add resize handle to container
+     */
+    addResizeHandle() {
+        const resizeHandle = document.createElement('div');
+        resizeHandle.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(-45deg, transparent 30%, #007acc 30%, #007acc 70%, transparent 70%);
+            cursor: nw-resize;
+            z-index: 1001;
+        `;
+        
+        let isResizing = false;
+        
+        resizeHandle.onmousedown = (e) => {
+            isResizing = true;
+            e.preventDefault();
+        };
+        
+        document.onmousemove = (e) => {
+            if (!isResizing) return;
+            
+            const rect = this.container.getBoundingClientRect();
+            const newWidth = e.clientX - rect.left;
+            const newHeight = e.clientY - rect.top;
+            
+            if (newWidth > 200 && newHeight > 150) {
+                this.container.style.width = newWidth + 'px';
+                this.container.style.height = newHeight + 'px';
+                this.onWindowResize();
+            }
+        };
+        
+        document.onmouseup = () => {
+            isResizing = false;
+        };
+        
+        this.container.appendChild(resizeHandle);
+    }
+    
+    /**
+     * Initialize Three.js scene
+     */
+    initializeScene() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x1a1a1a);
+        this.scene.fog = new THREE.Fog(0x1a1a1a, 10, 50);
+    }
+    
+    /**
+     * Initialize camera
+     */
+    initializeCamera() {
+        const aspect = this.container.clientWidth / this.container.clientHeight;
+        this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
+        this.updateCameraPosition();
+    }
+    
+    /**
+     * Initialize renderer
+     */
+    initializeRenderer() {
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: this.renderSettings.enableAntialiasing,
+            alpha: true 
+        });
+        
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        if (this.renderSettings.enableShadows) {
+            this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        }
+        
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.physicallyCorrectLights = true;
+        
+        this.container.appendChild(this.renderer.domElement);
+    }
+    
+    /**
+     * Initialize lighting
+     */
+    initializeLighting() {
+        // Ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+        this.scene.add(ambientLight);
+        
+        // Directional light (sun)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 10, 5);
+        directionalLight.castShadow = this.renderSettings.enableShadows;
+        
+        if (this.renderSettings.enableShadows) {
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -10;
+            directionalLight.shadow.camera.right = 10;
+            directionalLight.shadow.camera.top = 10;
+            directionalLight.shadow.camera.bottom = -10;
+        }
+        
+        this.scene.add(directionalLight);
+        
+        // Point light following robot
+        this.robotLight = new THREE.PointLight(0x00aaff, 0.3, 5);
+        this.robotLight.position.set(0, 1, 0);
+        this.scene.add(this.robotLight);
+    }
+    
+    /**
+     * Initialize camera controls
+     */
+    initializeControls() {
+        // Simple orbital controls implementation
+        this.controls = {
+            mouseX: 0,
+            mouseY: 0,
+            isMouseDown: false,
+            zoom: 1
+        };
+        
+        this.renderer.domElement.addEventListener('mousedown', (e) => {
+            this.controls.isMouseDown = true;
+            this.controls.mouseX = e.clientX;
+            this.controls.mouseY = e.clientY;
+        });
+        
+        this.renderer.domElement.addEventListener('mousemove', (e) => {
+            if (!this.controls.isMouseDown || this.cameraSettings.followRobot) return;
+            
+            const deltaX = e.clientX - this.controls.mouseX;
+            const deltaY = e.clientY - this.controls.mouseY;
+            
+            this.camera.position.x += deltaX * 0.01;
+            this.camera.position.z += deltaY * 0.01;
+            
+            this.controls.mouseX = e.clientX;
+            this.controls.mouseY = e.clientY;
+        });
+        
+        this.renderer.domElement.addEventListener('mouseup', () => {
+            this.controls.isMouseDown = false;
+        });
+        
+        this.renderer.domElement.addEventListener('wheel', (e) => {
+            this.controls.zoom += e.deltaY * 0.001;
+            this.controls.zoom = Math.max(0.5, Math.min(3, this.controls.zoom));
+            this.updateCameraPosition();
         });
     }
     
-    toggleWireframe() {
-        this.wireframeMode = !this.wireframeMode;
+    /**
+     * Create 3D robot model
+     */
+    async createRobot() {
+        this.robotGroup = new THREE.Group();
         
-        this.group.traverse((child) => {
-            if (child.material) {
-                child.material.wireframe = this.wireframeMode;
+        // Robot body
+        const bodyGeometry = new THREE.BoxGeometry(0.4, 0.15, 0.3);
+        const bodyMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x007acc,
+            shininess: 100 
+        });
+        this.robotBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        this.robotBody.position.y = 0.075;
+        this.robotBody.castShadow = this.renderSettings.enableShadows;
+        this.robotBody.receiveShadow = this.renderSettings.enableShadows;
+        this.robotGroup.add(this.robotBody);
+        
+        // Robot wheels
+        const wheelGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.03, 16);
+        const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+        
+        this.robotWheels.left = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        this.robotWheels.left.position.set(-0.15, 0.05, 0.1);
+        this.robotWheels.left.rotation.z = Math.PI / 2;
+        this.robotWheels.left.castShadow = this.renderSettings.enableShadows;
+        this.robotGroup.add(this.robotWheels.left);
+        
+        this.robotWheels.right = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        this.robotWheels.right.position.set(0.15, 0.05, 0.1);
+        this.robotWheels.right.rotation.z = Math.PI / 2;
+        this.robotWheels.right.castShadow = this.renderSettings.enableShadows;
+        this.robotGroup.add(this.robotWheels.right);
+        
+        // Robot direction indicator
+        const arrowGeometry = new THREE.ConeGeometry(0.05, 0.15, 8);
+        const arrowMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff88 });
+        const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
+        arrow.position.set(0, 0.2, 0);
+        arrow.rotation.x = Math.PI / 2;
+        this.robotGroup.add(arrow);
+        
+        // LiDAR sensor (if enabled)
+        if (ConfigManager.get('simulator.sensors.lidarEnabled', false)) {
+            this.createLiDARSensor();
+        }
+        
+        // Status LED
+        this.createStatusLED();
+        
+        this.scene.add(this.robotGroup);
+    }
+    
+    /**
+     * Create LiDAR sensor visualization
+     */
+    createLiDARSensor() {
+        const lidarGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.05, 16);
+        const lidarMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+        this.robotSensors.lidar = new THREE.Mesh(lidarGeometry, lidarMaterial);
+        this.robotSensors.lidar.position.set(0, 0.18, 0);
+        this.robotGroup.add(this.robotSensors.lidar);
+        
+        // LiDAR scan visualization
+        this.lidarRays = new THREE.Group();
+        this.robotGroup.add(this.lidarRays);
+    }
+    
+    /**
+     * Create status LED indicator
+     */
+    createStatusLED() {
+        const ledGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+        const ledMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x004400 
+        });
+        this.statusLED = new THREE.Mesh(ledGeometry, ledMaterial);
+        this.statusLED.position.set(0, 0.16, -0.1);
+        this.robotGroup.add(this.statusLED);
+    }
+    
+    /**
+     * Create environment objects
+     */
+    async createEnvironment() {
+        this.environmentGroup = new THREE.Group();
+        
+        // Ground plane
+        this.createGround();
+        
+        // Workspace boundaries
+        this.createWorkspaceBoundaries();
+        
+        // Location markers
+        this.createLocationMarkers();
+        
+        // Coordinate grid
+        this.createGrid();
+        
+        this.scene.add(this.environmentGroup);
+    }
+    
+    /**
+     * Create ground plane
+     */
+    createGround() {
+        const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        const groundMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x2d2d2d,
+            transparent: true,
+            opacity: 0.8 
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = this.renderSettings.enableShadows;
+        this.environmentGroup.add(ground);
+    }
+    
+    /**
+     * Create workspace boundaries
+     */
+    createWorkspaceBoundaries() {
+        const material = new THREE.LineBasicMaterial({ color: 0x007acc, linewidth: 2 });
+        const points = [
+            new THREE.Vector3(-1, 0.1, -1),
+            new THREE.Vector3(3, 0.1, -1),
+            new THREE.Vector3(3, 0.1, 3),
+            new THREE.Vector3(-1, 0.1, 3),
+            new THREE.Vector3(-1, 0.1, -1)
+        ];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const boundary = new THREE.Line(geometry, material);
+        this.environmentGroup.add(boundary);
+    }
+    
+    /**
+     * Create location markers
+     */
+    createLocationMarkers() {
+        const locations = ConfigManager.getAllLocations();
+        
+        Object.entries(locations).forEach(([locId, location]) => {
+            const marker = this.createLocationMarker(locId, location);
+            this.locations.set(locId, marker);
+            this.environmentGroup.add(marker);
+        });
+    }
+    
+    /**
+     * Create individual location marker
+     * @param {string} locId - Location ID
+     * @param {object} location - Location data
+     * @returns {THREE.Group} Location marker group
+     */
+    createLocationMarker(locId, location) {
+        const markerGroup = new THREE.Group();
+        
+        // Base platform
+        const platformGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16);
+        const platformMaterial = new THREE.MeshPhongMaterial({ 
+            color: this.getLocationColor(locId),
+            transparent: true,
+            opacity: 0.7 
+        });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.y = 0.025;
+        markerGroup.add(platform);
+        
+        // Vertical indicator
+        const poleGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.5, 8);
+        const poleMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+        pole.position.y = 0.25;
+        markerGroup.add(pole);
+        
+        // Location icon
+        const iconGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+        const iconMaterial = new THREE.MeshPhongMaterial({ 
+            color: this.getLocationColor(locId),
+            emissive: this.getLocationColor(locId),
+            emissiveIntensity: 0.3 
+        });
+        const icon = new THREE.Mesh(iconGeometry, iconMaterial);
+        icon.position.y = 0.5;
+        markerGroup.add(icon);
+        
+        // Position marker
+        markerGroup.position.set(location.x, 0, location.y);
+        
+        return markerGroup;
+    }
+    
+    /**
+     * Get color for location type
+     * @param {string} locId - Location ID
+     * @returns {number} Color hex value
+     */
+    getLocationColor(locId) {
+        const colors = {
+            'home': 0x00ff00,
+            'storage_a': 0x0088ff,
+            'storage_b': 0x0088ff,
+            'workstation': 0xff8800,
+            'loading': 0xff0088,
+            'inspection': 0x8800ff
+        };
+        return colors[locId] || 0xffffff;
+    }
+    
+    /**
+     * Create coordinate grid
+     */
+    createGrid() {
+        const gridHelper = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
+        this.environmentGroup.add(gridHelper);
+    }
+    
+    /**
+     * Create visual effects
+     */
+    createEffects() {
+        // Motion trail
+        this.createMotionTrail();
+        
+        // Particle system for status
+        this.createParticleSystem();
+        
+        // Path visualization
+        this.createPathVisualization();
+    }
+    
+    /**
+     * Create motion trail effect
+     */
+    createMotionTrail() {
+        const trailMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x00aaff,
+            transparent: true,
+            opacity: 0.6 
+        });
+        
+        this.trailPoints = [];
+        this.maxTrailPoints = 100;
+        
+        const trailGeometry = new THREE.BufferGeometry();
+        this.trail = new THREE.Line(trailGeometry, trailMaterial);
+        this.scene.add(this.trail);
+    }
+    
+    /**
+     * Create particle system
+     */
+    createParticleSystem() {
+        const particleCount = 50;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        
+        for (let i = 0; i < particleCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 10;
+        }
+        
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x007acc,
+            size: 0.02,
+            transparent: true,
+            opacity: 0.3
+        });
+        
+        this.particles = new THREE.Points(particles, particleMaterial);
+        this.scene.add(this.particles);
+    }
+    
+    /**
+     * Create path visualization
+     */
+    createPathVisualization() {
+        // This will be populated when navigation starts
+        this.pathGroup = new THREE.Group();
+        this.scene.add(this.pathGroup);
+    }
+    
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Robot state updates
+        window.addEventListener('robotStateUpdate', (event) => {
+            this.updateRobotState(event.detail);
+        });
+        
+        // Navigation events
+        window.addEventListener('navigationStarted', (event) => {
+            this.onNavigationStarted(event.detail);
+        });
+        
+        window.addEventListener('arrivedAtLocation', (event) => {
+            this.onArrivedAtLocation(event.detail);
+        });
+        
+        // System events
+        window.addEventListener('systemStarted', () => {
+            this.updateStatusLED('running');
+        });
+        
+        window.addEventListener('systemPaused', () => {
+            this.updateStatusLED('paused');
+        });
+        
+        window.addEventListener('systemStopped', () => {
+            this.updateStatusLED('stopped');
+        });
+        
+        // Window resize
+        window.addEventListener('resize', () => this.onWindowResize());
+        
+        // LiDAR data if available
+        window.addEventListener('laserScanUpdate', (event) => {
+            this.updateLiDARVisualization(event.detail);
+        });
+        
+        // Configuration changes
+        ConfigManager.onChange('visualization', () => {
+            this.updateVisualizationSettings();
+        });
+    }
+    
+    /**
+     * Update robot state from simulation
+     * @param {object} state - Robot state
+     */
+    updateRobotState(state) {
+        this.robotState.position = state.position;
+        this.robotState.orientation = state.orientation;
+        
+        if (state.velocity) {
+            this.robotState.velocity.linear = Math.sqrt(
+                state.velocity.linear.x ** 2 + state.velocity.linear.y ** 2
+            );
+            this.robotState.velocity.angular = state.velocity.angular.z;
+        }
+        
+        this.robotState.isMoving = this.robotState.velocity.linear > 0.01 || 
+                                   Math.abs(this.robotState.velocity.angular) > 0.01;
+    }
+    
+    /**
+     * Update robot 3D position and orientation
+     */
+    updateRobotTransform() {
+        if (!this.robotGroup) return;
+        
+        // Update position
+        this.robotGroup.position.set(
+            this.robotState.position.x,
+            0,
+            this.robotState.position.y
+        );
+        
+        // Update orientation
+        this.robotGroup.rotation.y = -this.robotState.orientation;
+        
+        // Update robot light position
+        if (this.robotLight) {
+            this.robotLight.position.set(
+                this.robotState.position.x,
+                1,
+                this.robotState.position.y
+            );
+        }
+        
+        // Animate wheels if moving
+        if (this.robotState.isMoving && this.robotWheels.left && this.robotWheels.right) {
+            const wheelSpeed = this.robotState.velocity.linear * 5; // Scale for visibility
+            this.robotWheels.left.rotation.x += wheelSpeed * 0.016; // Assuming 60fps
+            this.robotWheels.right.rotation.x += wheelSpeed * 0.016;
+        }
+        
+        // Update motion trail
+        this.updateMotionTrail();
+        
+        // Update camera if following robot
+        if (this.cameraSettings.followRobot) {
+            this.updateCameraPosition();
+        }
+    }
+    
+    /**
+     * Update motion trail
+     */
+    updateMotionTrail() {
+        this.trailPoints.push(new THREE.Vector3(
+            this.robotState.position.x,
+            0.1,
+            this.robotState.position.y
+        ));
+        
+        if (this.trailPoints.length > this.maxTrailPoints) {
+            this.trailPoints.shift();
+        }
+        
+        if (this.trail && this.trailPoints.length > 1) {
+            this.trail.geometry.setFromPoints(this.trailPoints);
+            this.trail.geometry.attributes.position.needsUpdate = true;
+        }
+    }
+    
+    /**
+     * Update camera position based on settings
+     */
+    updateCameraPosition() {
+        if (!this.camera || !this.cameraSettings.followRobot) return;
+        
+        const robotPos = this.robotState.position;
+        const distance = this.cameraSettings.distance * this.controls.zoom;
+        const height = this.cameraSettings.height;
+        
+        let targetX, targetY, targetZ;
+        
+        switch (this.cameraSettings.viewMode) {
+            case 'THIRD_PERSON':
+                targetX = robotPos.x - distance * Math.cos(this.robotState.orientation);
+                targetY = height;
+                targetZ = robotPos.y - distance * Math.sin(this.robotState.orientation);
+                break;
+                
+            case 'TOP_DOWN':
+                targetX = robotPos.x;
+                targetY = distance;
+                targetZ = robotPos.y;
+                break;
+                
+            case 'FIRST_PERSON':
+                targetX = robotPos.x + 0.2 * Math.cos(this.robotState.orientation);
+                targetY = 0.3;
+                targetZ = robotPos.y + 0.2 * Math.sin(this.robotState.orientation);
+                break;
+                
+            default: // FREE
+                return;
+        }
+        
+        // Smooth camera movement
+        const smoothing = this.cameraSettings.smoothing;
+        this.camera.position.x += (targetX - this.camera.position.x) * smoothing;
+        this.camera.position.y += (targetY - this.camera.position.y) * smoothing;
+        this.camera.position.z += (targetZ - this.camera.position.z) * smoothing;
+        
+        // Look at robot
+        this.camera.lookAt(robotPos.x, 0.1, robotPos.y);
+    }
+    
+    /**
+     * Update status LED color
+     * @param {string} status - System status
+     */
+    updateStatusLED(status) {
+        if (!this.statusLED) return;
+        
+        const colors = {
+            'running': { color: 0x00ff00, emissive: 0x004400 },
+            'paused': { color: 0xffaa00, emissive: 0x442200 },
+            'stopped': { color: 0xff0000, emissive: 0x440000 },
+            'error': { color: 0xff0000, emissive: 0x660000 }
+        };
+        
+        const colorData = colors[status] || colors['stopped'];
+        this.statusLED.material.color.setHex(colorData.color);
+        this.statusLED.material.emissive.setHex(colorData.emissive);
+    }
+    
+    /**
+     * Update LiDAR visualization
+     * @param {object} scanData - LiDAR scan data
+     */
+    updateLiDARVisualization(scanData) {
+        if (!this.lidarRays || !scanData) return;
+        
+        // Clear existing rays
+        this.lidarRays.clear();
+        
+        // Create new rays (sample every 10th ray for performance)
+        for (let i = 0; i < scanData.ranges.length; i += 10) {
+            const angle = scanData.angleMin + i * scanData.angleIncrement;
+            const range = scanData.ranges[i];
+            
+            if (range < scanData.rangeMax && range > scanData.rangeMin) {
+                const points = [
+                    new THREE.Vector3(0, 0.1, 0),
+                    new THREE.Vector3(
+                        range * Math.cos(angle),
+                        0.1,
+                        range * Math.sin(angle)
+                    )
+                ];
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineBasicMaterial({ 
+                    color: 0xff0000,
+                    transparent: true,
+                    opacity: 0.3 
+                });
+                const ray = new THREE.Line(geometry, material);
+                this.lidarRays.add(ray);
+            }
+        }
+    }
+    
+    /**
+     * Handle navigation started event
+     * @param {object} data - Navigation data
+     */
+    onNavigationStarted(data) {
+        if (data.target) {
+            this.robotState.targetPosition = data.target;
+            this.createPathToTarget(data.target);
+        }
+    }
+    
+    /**
+     * Handle arrived at location event
+     * @param {object} data - Arrival data
+     */
+    onArrivedAtLocation(data) {
+        this.robotState.targetPosition = null;
+        this.clearPath();
+        
+        // Flash location marker
+        if (data.locationId && this.locations.has(data.locationId)) {
+            this.flashLocationMarker(data.locationId);
+        }
+    }
+    
+    /**
+     * Create path visualization to target
+     * @param {object} target - Target position
+     */
+    createPathToTarget(target) {
+        this.clearPath();
+        
+        const points = [
+            new THREE.Vector3(this.robotState.position.x, 0.05, this.robotState.position.y),
+            new THREE.Vector3(target.x, 0.05, target.y)
+        ];
+        
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineDashedMaterial({ 
+            color: 0x00ff88,
+            dashSize: 0.1,
+            gapSize: 0.05 
+        });
+        
+        const path = new THREE.Line(geometry, material);
+        path.computeLineDistances();
+        this.pathGroup.add(path);
+    }
+    
+    /**
+     * Clear path visualization
+     */
+    clearPath() {
+        this.pathGroup.clear();
+    }
+    
+    /**
+     * Flash location marker
+     * @param {string} locationId - Location ID
+     */
+    flashLocationMarker(locationId) {
+        const marker = this.locations.get(locationId);
+        if (!marker) return;
+        
+        let flashCount = 0;
+        const flashInterval = setInterval(() => {
+            marker.visible = !marker.visible;
+            flashCount++;
+            
+            if (flashCount >= 6) {
+                marker.visible = true;
+                clearInterval(flashInterval);
+            }
+        }, 200);
+    }
+    
+    /**
+     * Start rendering loop
+     */
+    startRendering() {
+        if (this.isRendering) return;
+        
+        this.isRendering = true;
+        console.log('🎬 Starting 3D rendering loop');
+        
+        const renderLoop = (timestamp) => {
+            if (!this.isRendering) return;
+            
+            const startTime = performance.now();
+            
+            // Update robot transform
+            this.updateRobotTransform();
+            
+            // Update effects
+            this.updateEffects(timestamp);
+            
+            // Update performance metrics
+            this.updatePerformanceMetrics(startTime);
+            
+            // Render scene
+            if (this.renderer && this.scene && this.camera) {
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            this.animationId = requestAnimationFrame(renderLoop);
+        };
+        
+        this.animationId = requestAnimationFrame(renderLoop);
+    }
+    
+    /**
+     * Stop rendering loop
+     */
+    stopRendering() {
+        this.isRendering = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        console.log('⏹️ 3D rendering stopped');
+    }
+    
+    /**
+     * Update visual effects
+     * @param {number} timestamp - Animation timestamp
+     */
+    updateEffects(timestamp) {
+        // Rotate particles
+        if (this.particles) {
+            this.particles.rotation.y = timestamp * 0.0001;
+        }
+        
+        // Animate LiDAR sensor
+        if (this.robotSensors.lidar) {
+            this.robotSensors.lidar.rotation.y += 0.1;
+        }
+        
+        // Pulse status LED
+        if (this.statusLED && this.robotState.isMoving) {
+            const pulse = Math.sin(timestamp * 0.01) * 0.2 + 0.8;
+            this.statusLED.material.emissiveIntensity = pulse;
+        }
+    }
+    
+    /**
+     * Update performance metrics
+     * @param {number} startTime - Frame start time
+     */
+    updatePerformanceMetrics(startTime) {
+        const now = performance.now();
+        this.performance.renderTime = now - startTime;
+        this.frameCount++;
+        
+        if (now - this.performance.lastFPSUpdate > 1000) {
+            this.performance.fps = this.frameCount;
+            this.frameCount = 0;
+            this.performance.lastFPSUpdate = now;
+        }
+    }
+    
+    /**
+     * Handle window resize
+     */
+    onWindowResize() {
+        if (!this.camera || !this.renderer || !this.container) return;
+        
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        
+        this.renderer.setSize(width, height);
+    }
+    
+    /**
+     * Toggle visibility of 3D view
+     */
+    toggleVisibility() {
+        const isVisible = this.container.style.display !== 'none';
+        
+        if (isVisible) {
+            this.container.style.display = 'none';
+            this.stopRendering();
+        } else {
+            this.container.style.display = 'block';
+            this.startRendering();
+            this.onWindowResize();
+        }
+    }
+    
+    /**
+     * Set camera view mode
+     * @param {string} mode - View mode
+     */
+    setViewMode(mode) {
+        this.cameraSettings.viewMode = mode;
+        console.log(`Camera view mode changed to: ${mode}`);
+    }
+    
+    /**
+     * Set camera follow mode
+     * @param {boolean} follow - Whether to follow robot
+     */
+    setCameraFollow(follow) {
+        this.cameraSettings.followRobot = follow;
+        console.log(`Camera follow mode: ${follow ? 'enabled' : 'disabled'}`);
+    }
+    
+    /**
+     * Update visualization settings
+     */
+    updateVisualizationSettings() {
+        // Reload settings from config
+        this.renderSettings.enableShadows = ConfigManager.get('visualization.shadows', true);
+        this.renderSettings.renderQuality = ConfigManager.get('visualization.quality', 'HIGH');
+        
+        // Apply settings
+        if (this.renderer) {
+            this.renderer.shadowMap.enabled = this.renderSettings.enableShadows;
+        }
+    }
+    
+    /**
+     * Get performance metrics
+     * @returns {object} Performance data
+     */
+    getPerformanceMetrics() {
+        return {
+            ...this.performance,
+            isRendering: this.isRendering,
+            frameCount: this.frameCount
+        };
+    }
+    
+    /**
+     * Add obstacle to scene
+     * @param {object} obstacle - Obstacle definition
+     */
+    addObstacle(obstacle) {
+        let obstacleGeometry, obstacleMaterial, obstacleMesh;
+        
+        switch (obstacle.type) {
+            case 'box':
+                obstacleGeometry = new THREE.BoxGeometry(
+                    obstacle.width || 1,
+                    obstacle.height || 1,
+                    obstacle.depth || 1
+                );
+                break;
+            case 'cylinder':
+                obstacleGeometry = new THREE.CylinderGeometry(
+                    obstacle.radius || 0.5,
+                    obstacle.radius || 0.5,
+                    obstacle.height || 1,
+                    16
+                );
+                break;
+            default:
+                obstacleGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        }
+        
+        obstacleMaterial = new THREE.MeshPhongMaterial({ 
+            color: obstacle.color || 0xff4444,
+            transparent: true,
+            opacity: 0.7 
+        });
+        
+        obstacleMesh = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
+        obstacleMesh.position.set(obstacle.x || 0, (obstacle.height || 1) / 2, obstacle.y || 0);
+        obstacleMesh.castShadow = this.renderSettings.enableShadows;
+        obstacleMesh.receiveShadow = this.renderSettings.enableShadows;
+        
+        this.obstacles.set(obstacle.id, obstacleMesh);
+        this.environmentGroup.add(obstacleMesh);
+        
+        console.log(`Obstacle ${obstacle.id} added to 3D scene`);
+    }
+    
+    /**
+     * Remove obstacle from scene
+     * @param {string} obstacleId - Obstacle ID
+     */
+    removeObstacle(obstacleId) {
+        const obstacle = this.obstacles.get(obstacleId);
+        if (obstacle) {
+            this.environmentGroup.remove(obstacle);
+            this.obstacles.delete(obstacleId);
+            console.log(`Obstacle ${obstacleId} removed from 3D scene`);
+        }
+    }
+    
+    /**
+     * Cleanup and dispose resources
+     */
+    dispose() {
+        console.log('🧹 Disposing 3D visualization resources');
+        
+        this.stopRendering();
+        
+        // Dispose geometries and materials
+        this.scene.traverse((object) => {
+            if (object.geometry) {
+                object.geometry.dispose();
+            }
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
             }
         });
+        
+        // Remove renderer
+        if (this.renderer) {
+            this.renderer.dispose();
+            if (this.container && this.renderer.domElement) {
+                this.container.removeChild(this.renderer.domElement);
+            }
+        }
+        
+        console.log('✅ 3D visualization disposed');
     }
+}
+
+// Create global instance
+window.ThreeRobotVisualization = new ThreeRobotVisualization();
+
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ThreeRobotVisualization;
 }

@@ -1,0 +1,378 @@
+/* =============================================================================
+   css/components.css - COMPONENT-SPECIFIC STYLES
+   ============================================================================= */
+
+/* Panel Components */
+.panel {
+    background: rgba(42, 42, 42, 0.95);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(64, 64, 64, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Control Sections */
+.control-section {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    border: 1px solid rgba(64, 64, 64, 0.6);
+}
+
+/* Control Mode Selector */
+.control-mode-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 1rem 0;
+}
+
+.mode-button {
+    padding: 8px;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.mode-button.active {
+    background: linear-gradient(135deg, #00d4ff 0%, #007acc 100%);
+    color: #000;
+}
+
+/* Location Grid */
+.location-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.location-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #ffffff;
+}
+
+.location-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+    transform: translateY(-2px);
+}
+
+.location-card.selected {
+    border-color: #007bff;
+    background: rgba(0, 123, 255, 0.2);
+}
+
+.location-card.robot-here {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.2);
+    animation: pulse 2s infinite;
+}
+
+.location-card .material-count {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    color: #aaa;
+}
+
+.location-card .robot-status {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+/* Job Management */
+.job-creation-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.job-creation-form .form-row:last-child {
+    grid-template-columns: 1fr auto;
+}
+
+.current-job-display {
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    color: #ffffff;
+}
+
+.job-queue {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #555;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    color: #ffffff;
+}
+
+.job-item {
+    background: rgba(0, 123, 255, 0.1);
+    border-left: 4px solid #007bff;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+.job-item.active {
+    border-left-color: #ffc107;
+    background: rgba(255, 193, 7, 0.2);
+}
+
+.job-item.completed {
+    border-left-color: #28a745;
+    background: rgba(40, 167, 69, 0.2);
+}
+
+/* Status Indicators */
+.status-indicators {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 1rem 0;
+}
+
+.status-card {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #555;
+}
+
+.status-value {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #00ff88;
+    font-family: monospace;
+}
+
+/* System Controls */
+.system-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.emergency-controls {
+    display: grid;
+    gap: 8px;
+}
+
+/* Manual Controls */
+.manual-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.manual-controls .manual-btn:first-child {
+    grid-column: 2;
+}
+
+.manual-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.manual-controls .manual-btn:last-child {
+    grid-column: 2;
+}
+
+.manual-btn {
+    padding: 8px;
+    font-size: 1rem;
+}
+
+/* System Log */
+.system-log {
+    height: 180px;
+    overflow-y: auto;
+    border: 1px solid #555;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.75rem;
+    color: #00ff88;
+    line-height: 1.4;
+    border-radius: 6px;
+    white-space: pre-wrap;
+}
+
+/* Algorithm Parameters */
+.algorithm-params {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 0.8rem;
+}
+
+.param-row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 5px;
+    margin: 5px 0;
+    align-items: center;
+}
+
+.param-input {
+    padding: 4px;
+    font-size: 0.8rem;
+    width: 70px;
+}
+
+/* Excel Integration Components */
+.collection-status {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    margin: 10px 0;
+    font-size: 0.8rem;
+}
+
+.collection-stat {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.collection-stat-value {
+    font-weight: bold;
+    color: #00ff88;
+    font-family: monospace;
+}
+
+.excel-controls {
+    display: grid;
+    gap: 8px;
+    margin: 1rem 0;
+}
+
+.data-preview-container {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #555;
+    border-radius: 6px;
+}
+
+.data-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.75rem;
+}
+
+.data-preview-table th, 
+.data-preview-table td {
+    border: 1px solid #555;
+    padding: 4px 6px;
+    text-align: left;
+}
+
+.data-preview-table th {
+    background-color: rgba(0, 122, 204, 0.3);
+    color: #ffffff;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+}
+
+.data-preview-table .no-data {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}
+
+.feature-list {
+    font-size: 0.75rem;
+    color: #aaa;
+    line-height: 1.3;
+}
+
+/* Loading and States */
+.loading {
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #007acc;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-state {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.3);
+    color: #ff6b6b;
+}
+
+.success-state {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #00ff88;
+}
+
+.warning-state {
+    background: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+}
+
+/* Responsive Component Adjustments */
+@media (max-width: 768px) {
+    .location-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .status-indicators {
+        grid-template-columns: 1fr;
+    }
+    
+    .control-mode-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .system-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .collection-status {
+        grid-template-columns: 1fr;
+    }
+}

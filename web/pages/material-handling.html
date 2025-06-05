@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Material Handling System - RoboTech Platform</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/navigation.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/material-handling.css">
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+</head>
+<body>
+    <!-- Back Button to Index -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+        <a href="../index.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Advanced Material Handling System</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p>Initializing advanced control algorithms...</p>
+        </div>
+    </div>
+
+    <div id="container" style="display: none;">
+        <!-- Header -->
+        <header id="header">
+            <div class="header-left">
+                <div class="brand-logo">
+                    <div class="brand-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Advanced Material Handling</h1>
+                        <div class="subtitle">Multi-Algorithm Robot Control Platform v3.0</div>
+                    </div>
+                </div>
+                <div class="connection-status">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="connection-status">Connecting...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
+                <button id="export-btn" class="icon-btn" title="Export Data"><i class="fas fa-download"></i></button>
+                <button id="fullscreen-btn" class="icon-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                <button id="help-btn" class="icon-btn" title="Help"><i class="fas fa-question-circle"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div id="main-content">
+            <!-- Control Panel -->
+            <div id="control-panel">
+                <div class="panel-section">
+                    <h3><i class="fas fa-brain" style="color: var(--primary-color);"></i> Control Algorithm</h3>
+                    <div class="control-mode-selector">
+                        <button class="mode-button active" data-mode="proportional">
+                            <span class="mode-icon">📐</span>
+                            <span class="mode-label">Proportional</span>
+                        </button>
+                        <button class="mode-button" data-mode="pid">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-label">PID Control</span>
+                        </button>
+                        <button class="mode-button" data-mode="pure_pursuit">
+                            <span class="mode-icon">🏁</span>
+                            <span class="mode-label">Pure Pursuit</span>
+                        </button>
+                        <button class="mode-button" data-mode="state_machine">
+                            <span class="mode-icon">🔄</span>
+                            <span class="mode-label">State Machine</span>
+                        </button>
+                    </div>
+                    
+                    <div id="algorithm-params" class="algorithm-params">
+                        <!-- Parameter controls will be populated here -->
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3><i class="fas fa-map-marked-alt" style="color: var(--primary-color);"></i> Facility Locations</h3>
+                    <div class="location-grid">
+                        <div class="location-card" data-location="storage_a">
+                            <div class="location-header">
+                                <strong>🏪 Storage A</strong>
+                                <span class="location-coords">(0.0, 2.0)</span>
+                            </div>
+                            <div class="material-count">Items: 0</div>
+                        </div>
+                        <div class="location-card" data-location="storage_b">
+                            <div class="location-header">
+                                <strong>🏪 Storage B</strong>
+                                <span class="location-coords">(2.0, 2.0)</span>
+                            </div>
+                            <div class="material-count">Items: 0</div>
+                        </div>
+                        <div class="location-card" data-location="workstation">
+                            <div class="location-header">
+                                <strong>🔧 Workstation</strong>
+                                <span class="location-coords">(2.0, 0.0)</span>
+                            </div>
+                            <div class="material-count">Items: 0</div>
+                        </div>
+                        <div class="location-card robot-here" data-location="home">
+                            <div class="location-header">
+                                <strong>🏠 Home</strong>
+                                <span class="location-coords">(0.0, 0.0)</span>
+                            </div>
+                            <div class="robot-status">🤖 Robot Here</div>
+                        </div>
+                        <div class="location-card" data-location="loading">
+                            <div class="location-header">
+                                <strong>📦 Loading Dock</strong>
+                                <span class="location-coords">(1.0, 0.0)</span>
+                            </div>
+                            <div class="material-count">Items: 0</div>
+                        </div>
+                        <div class="location-card" data-location="inspection">
+                            <div class="location-header">
+                                <strong>🔍 Inspection</strong>
+                                <span class="location-coords">(1.0, 2.0)</span>
+                            </div>
+                            <div class="material-count">Items: 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3><i class="fas fa-plus-circle" style="color: var(--primary-color);"></i> Create Transport Job</h3>
+                    <div class="job-creation">
+                        <div class="location-selectors">
+                            <select id="pickup-location" class="location-select">
+                                <option value="">📤 Select pickup</option>
+                                <option value="storage_a">🏪 Storage A</option>
+                                <option value="storage_b">🏪 Storage B</option>
+                                <option value="loading">📦 Loading Dock</option>
+                                <option value="workstation">🔧 Workstation</option>
+                                <option value="inspection">🔍 Inspection</option>
+                            </select>
+                            <select id="dropoff-location" class="location-select">
+                                <option value="">📥 Select dropoff</option>
+                                <option value="home">🏠 Home</option>
+                                <option value="storage_a">🏪 Storage A</option>
+                                <option value="storage_b">🏪 Storage B</option>
+                                <option value="workstation">🔧 Workstation</option>
+                                <option value="inspection">🔍 Inspection</option>
+                            </select>
+                        </div>
+                        <div class="quantity-controls">
+                            <input type="number" id="item-quantity" placeholder="Quantity" min="1" max="10" value="1">
+                            <button id="add-job-btn" class="action-btn success">➕ Add Job</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> System Control</h3>
+                    <div class="system-controls">
+                        <button id="start-btn" class="control-btn primary">▶️ Start</button>
+                        <button id="pause-btn" class="control-btn warning">⏸️ Pause</button>
+                        <button id="stop-btn" class="control-btn danger">⏹️ Stop</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Panel -->
+            <div id="status-panel">
+                <div class="panel-section">
+                    <h3><i class="fas fa-chart-bar" style="color: var(--primary-color);"></i> System Status</h3>
+                    
+                    <div class="status-indicators">
+                        <div class="status-card">
+                            <div class="status-label">System State</div>
+                            <div id="system-state" class="status-value">IDLE</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Control Mode</div>
+                            <div id="control-mode" class="status-value">PROPORTIONAL</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Robot Position</div>
+                            <div id="robot-position" class="status-value">(0.00, 0.00)</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Jobs Completed</div>
+                            <div id="jobs-completed" class="status-value">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="active-job-section">
+                        <h4>📋 Active Job</h4>
+                        <div id="current-job" class="current-job-display">None</div>
+                    </div>
+                    
+                    <div class="job-queue-section">
+                        <h4>⏳ Job Queue</h4>
+                        <div class="job-queue" id="job-queue">
+                            <!-- Jobs will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3><i class="fas fa-tachometer-alt" style="color: var(--primary-color);"></i> Performance</h3>
+                    <div class="performance-indicators">
+                        <div class="status-card">
+                            <div class="status-label">Distance Error</div>
+                            <div id="distance-error" class="status-value">0.00m</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Heading Error</div>
+                            <div id="heading-error" class="status-value">0.0°</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Linear Velocity</div>
+                            <div id="linear-velocity" class="status-value">0.00m/s</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Angular Velocity</div>
+                            <div id="angular-velocity" class="status-value">0.0°/s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3><i class="fas fa-terminal" style="color: var(--primary-color);"></i> System Log</h3>
+                    <div class="system-log" id="system-log">
+                        <!-- Log entries will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Controls Panel -->
+            <div id="advanced-panel">
+                <div class="panel-section">
+                    <h3><i class="fas fa-exclamation-triangle" style="color: var(--accent-color);"></i> Emergency Controls</h3>
+                    <div class="emergency-controls">
+                        <button id="emergency-stop-btn" class="emergency-btn">🛑 Emergency Stop</button>
+                        <button id="reset-robot-btn" class="action-btn warning">🔄 Reset Robot</button>
+                        <button id="clear-jobs-btn" class="action-btn warning">🗑️ Clear Queue</button>
+                        <button id="return-home-btn" class="action-btn primary">🏠 Return Home</button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3><i class="fas fa-chart-line" style="color: var(--primary-color);"></i> Performance Metrics</h3>
+                    <div class="performance-metrics">
+                        <div class="status-card">
+                            <div class="status-label">Update Rate</div>
+                            <div id="update-rate" class="status-value">10Hz</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">ROS Status</div>
+                            <div id="ros-status" class="status-value">CONNECTED</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3><i class="fas fa-gamepad" style="color: var(--primary-color);"></i> Manual Control</h3>
+                    <div class="manual-controls">
+                        <div class="dpad">
+                            <button class="dpad-btn" data-direction="forward">⬆️</button>
+                            <div class="dpad-middle">
+                                <button class="dpad-btn" data-direction="left">⬅️</button>
+                                <button class="dpad-btn stop" data-direction="stop">⏹️</button>
+                                <button class="dpad-btn" data-direction="right">➡️</button>
+                            </div>
+                            <button class="dpad-btn" data-direction="backward">⬇️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excel Integration Panel -->
+            <div id="excel-panel">
+                <div class="panel-section">
+                    <h3><i class="fas fa-file-excel" style="color: var(--accent-color);"></i> Data Collection</h3>
+                    
+                    <div class="collection-status">
+                        <div class="collection-stat">
+                            <div class="stat-label">Status</div>
+                            <div id="collection-status" class="stat-value">STOPPED</div>
+                        </div>
+                        <div class="collection-stat">
+                            <div class="stat-label">Records</div>
+                            <div id="record-count" class="stat-value">0</div>
+                        </div>
+                        <div class="collection-stat">
+                            <div class="stat-label">Duration</div>
+                            <div id="collection-duration" class="stat-value">00:00</div>
+                        </div>
+                        <div class="collection-stat">
+                            <div class="stat-label">Size</div>
+                            <div id="data-size" class="stat-value">0 KB</div>
+                        </div>
+                    </div>
+                    
+                    <div class="excel-controls">
+                        <button id="start-recording-btn" class="action-btn success">▶️ Start Recording</button>
+                        <button id="stop-recording-btn" class="action-btn warning">⏹️ Stop Recording</button>
+                        <button id="export-excel-btn" class="action-btn primary">📊 Export Excel</button>
+                        <button id="clear-data-btn" class="action-btn danger">🗑️ Clear Data</button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3><i class="fas fa-eye" style="color: var(--primary-color);"></i> Live Data Preview</h3>
+                    <div class="data-preview-container">
+                        <table class="data-preview-table" id="data-preview">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>X</th>
+                                    <th>Y</th>
+                                    <th>Vel</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-body">
+                                <tr><td colspan="4" class="no-data">No data collected</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3><i class="fas fa-info-circle" style="color: var(--primary-color);"></i> Export Features</h3>
+                    <div class="export-features">
+                        <ul>
+                            <li>• Position tracking (X, Y coordinates)</li>
+                            <li>• Velocity and heading data</li>
+                            <li>• Job execution timeline</li>
+                            <li>• Control algorithm performance</li>
+                            <li>• Statistical analysis sheets</li>
+                            <li>• Excel-compatible timestamps</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>⚙️ Advanced Settings</h2>
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <h3>Connection</h3>
+                    <label>
+                        WebSocket URL:
+                        <input type="text" id="websocket-url" value="ws://localhost:9090">
+                    </label>
+                    <button id="reconnect-btn" class="action-btn">Reconnect</button>
+                </div>
+                <div class="setting-group">
+                    <h3>Control Parameters</h3>
+                    <label>
+                        <input type="checkbox" id="velocity-smoothing" checked> Velocity Smoothing
+                    </label>
+                    <label>
+                        <input type="checkbox" id="adaptive-control" checked> Adaptive Control
+                    </label>
+                    <label>
+                        Update Rate:
+                        <select id="control-update-rate">
+                            <option value="10" selected>10 Hz</option>
+                            <option value="20">20 Hz</option>
+                            <option value="50">50 Hz</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <h3>Data Collection</h3>
+                    <label>
+                        <input type="checkbox" id="auto-export" checked> Auto Export on Job Complete
+                    </label>
+                    <label>
+                        <input type="checkbox" id="include-performance" checked> Include Performance Data
+                    </label>
+                    <label>
+                        Collection Rate:
+                        <select id="data-collection-rate">
+                            <option value="1">1 Hz</option>
+                            <option value="5" selected>5 Hz</option>
+                            <option value="10">10 Hz</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>❓ Advanced Material Handling Help</h2>
+            <div class="help-content">
+                <h3>🧠 Control Algorithms</h3>
+                <ul>
+                    <li><strong>Proportional:</strong> Simple distance-based control</li>
+                    <li><strong>PID Control:</strong> Advanced control with integral and derivative terms</li>
+                    <li><strong>Pure Pursuit:</strong> Path following algorithm for smooth trajectories</li>
+                    <li><strong>State Machine:</strong> Behavior-based control with discrete states</li>
+                </ul>
+                
+                <h3>🚀 System Operation</h3>
+                <ul>
+                    <li><strong>Create Jobs:</strong> Select pickup and dropoff locations</li>
+                    <li><strong>Start System:</strong> Begin automated job execution</li>
+                    <li><strong>Monitor Performance:</strong> Track control metrics in real-time</li>
+                    <li><strong>Emergency Stop:</strong> Immediate halt for safety</li>
+                </ul>
+                
+                <h3>📊 Data Collection</h3>
+                <ul>
+                    <li><strong>Start Recording:</strong> Begin data collection for analysis</li>
+                    <li><strong>Export Excel:</strong> Generate comprehensive reports</li>
+                    <li><strong>Multiple Sheets:</strong> Data, statistics, control analysis</li>
+                </ul>
+                
+                <h3>🔧 Advanced Features</h3>
+                <ul>
+                    <li><strong>Algorithm Comparison:</strong> Switch between control methods</li>
+                    <li><strong>Parameter Tuning:</strong> Adjust control gains in real-time</li>
+                    <li><strong>Performance Analytics:</strong> Monitor system efficiency</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    
+    <!-- Platform JavaScript Files -->
+    <script src="../js/platform-material-handling.js"></script>
+    <script src="../js/ros-bridge.js"></script>
+    <script src="../js/control-algorithms.js"></script>
+    <script src="../js/job-manager.js"></script>
+    <script src="../js/excel-integration.js"></script>
+    <script src="../js/material-handling.js"></script>
+
+    <script>
+        // Initialize application when page loads
+        window.addEventListener('load', () => {
+            // Hide loading screen after a short delay
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('container').style.display = 'flex';
+                
+                // Initialize the material handling system
+                window.materialHandling = new MaterialHandlingSystem();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

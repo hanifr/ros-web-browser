@@ -1,226 +1,855 @@
-// Robot Simulator Main Controller
+/**
+ * Robot Simulator - Simulates robot physics, movement, and sensor data
+ * Provides realistic robot behavior for testing and development without hardware
+ */
+
 class RobotSimulator {
     constructor() {
-        this.robot = null;
-        this.scene = null;
-        this.isMoving = false;
-        this.currentLinear = 0;
-        this.currentAngular = 0;
+        // Simulation state
+        this.isSimulating = false;
+        this.simulationMode = 'PHYSICS'; // PHYSICS, KINEMATIC, MOCK
+        this.simulationRate = 50; // Hz
+        this.simulationInterval = null;
         
-        this.init();
-    }
-    
-    init() {
-        // Initialize Three.js scene
-        this.initThreeJS();
-        
-        // Initialize ROS connection
-        this.initROS();
-        
-        // Setup robot
-        this.createRobot();
-        
-        // Start animation loop
-        this.animate();
-    }
-    
-    initThreeJS() {
-        // Scene setup
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x222222);
-        
-        // Camera setup
-        this.camera = new THREE.PerspectiveCamera(
-            75, 
-            window.innerWidth / window.innerHeight, 
-            0.1, 
-            1000
-        );
-        this.camera.position.set(5, 5, 5);
-        
-        // Renderer setup
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(window.innerWidth * 0.7, window.innerHeight);
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        
-        document.getElementById('three-container').appendChild(this.renderer.domElement);
-        
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-        this.scene.add(ambientLight);
-        
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(10, 10, 5);
-        directionalLight.castShadow = true;
-        this.scene.add(directionalLight);
-        
-        // Ground plane
-        const groundGeometry = new THREE.PlaneGeometry(20, 20);
-        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        this.scene.add(ground);
-        
-        // Grid helper
-        const gridHelper = new THREE.GridHelper(20, 20);
-        this.scene.add(gridHelper);
-        
-        // Controls
-        this.setupControls();
-    }
-    
-    initROS() {
-        // ROS connection (implemented in ros-bridge.js)
-        window.rosConnection = new ROSBridge('ws://localhost:9090');
-        
-        // Subscribe to robot pose updates
-        window.rosConnection.subscribe('/robot_pose', 'geometry_msgs/PoseStamped', 
-            (message) => {
-                this.updateRobotPose(message.pose);
-            });
-            
-        // Subscribe to velocity commands echo
-        window.rosConnection.subscribe('/cmd_vel_echo', 'geometry_msgs/Twist',
-            (message) => {
-                this.updateVelocityDisplay(message);
-            });
-    }
-    
-    createRobot() {
-        this.robot = new RobotModel();
-        this.scene.add(this.robot.group);
-    }
-    
-    setupControls() {
-        // Mouse controls for camera
-        this.controls = {
-            mouseX: 0,
-            mouseY: 0,
-            isMouseDown: false
+        // Robot physical properties
+        this.robotParams = {
+            wheelbase: ConfigManager.get('robot.wheelbase', 0.3),
+            wheelRadius: 0.05,
+            maxLinearVel: ConfigManager.get('robot.maxLinearVelocity', 1.0),
+            maxAngularVel: ConfigManager.get('robot.maxAngularVelocity', 2.0),
+            linearAccel: 0.8,
+            angularAccel: 1.5,
+            mass: 25.0, // kg
+            inertia: 2.0, // kg*m²
+            friction: 0.1
         };
         
-        const container = this.renderer.domElement;
+        // Robot state
+        this.state = {
+            position: { x: 0.0, y: 0.0, z: 0.0 },
+            orientation: 0.0, // radians
+            velocity: {
+                linear: { x: 0.0, y: 0.0, z: 0.0 },
+                angular: { x: 0.0, y: 0.0, z: 0.0 }
+            },
+            acceleration: {
+                linear: { x: 0.0, y: 0.0, z: 0.0 },
+                angular: { x: 0.0, y: 0.0, z: 0.0 }
+            },
+            wheelSpeeds: { left: 0.0, right: 0.0 },
+            timestamp: Date.now()
+        };
         
-        container.addEventListener('mousedown', (e) => {
-            this.controls.isMouseDown = true;
-            this.controls.mouseX = e.clientX;
-            this.controls.mouseY = e.clientY;
-        });
+        // Command inputs
+        this.commandVelocity = {
+            linear: 0.0,
+            angular: 0.0,
+            timestamp: Date.now()
+        };
         
-        container.addEventListener('mouseup', () => {
-            this.controls.isMouseDown = false;
-        });
+        // Sensor simulation
+        this.sensors = {
+            odometry: {
+                enabled: true,
+                noise: 0.001, // m/step
+                drift: 0.0001 // rad/step
+            },
+            imu: {
+                enabled: true,
+                accelNoise: 0.01, // m/s²
+                gyroNoise: 0.001 // rad/s
+            },
+            lidar: {
+                enabled: false,
+                range: 10.0,
+                resolution: 360,
+                noise: 0.01
+            },
+            encoders: {
+                enabled: true,
+                ticksPerMeter: 1000,
+                noise: 0.1
+            }
+        };
         
-        container.addEventListener('mousemove', (e) => {
-            if (!this.controls.isMouseDown) return;
-            
-            const deltaX = e.clientX - this.controls.mouseX;
-            const deltaY = e.clientY - this.controls.mouseY;
-            
-            // Rotate camera around robot
-            const spherical = new THREE.Spherical();
-            spherical.setFromVector3(this.camera.position);
-            spherical.theta -= deltaX * 0.01;
-            spherical.phi += deltaY * 0.01;
-            spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
-            
-            this.camera.position.setFromSpherical(spherical);
-            this.camera.lookAt(0, 0, 0);
-            
-            this.controls.mouseX = e.clientX;
-            this.controls.mouseY = e.clientY;
-        });
+        // Environment simulation
+        this.environment = {
+            friction: 0.1,
+            gravity: 9.81,
+            airDensity: 1.225,
+            obstacles: []
+        };
         
-        // Zoom with mouse wheel
-        container.addEventListener('wheel', (e) => {
-            const distance = this.camera.position.length();
-            const scale = e.deltaY > 0 ? 1.1 : 0.9;
-            this.camera.position.multiplyScalar(scale);
-        });
+        // Performance tracking
+        this.performance = {
+            updateCount: 0,
+            lastUpdateTime: Date.now(),
+            averageUpdateTime: 0,
+            maxUpdateTime: 0
+        };
+        
+        // Accumulated odometry error
+        this.odometryError = {
+            position: { x: 0.0, y: 0.0 },
+            orientation: 0.0
+        };
+        
+        this.initialize();
     }
     
-    updateRobotPose(pose) {
-        if (!this.robot) return;
+    /**
+     * Initialize the robot simulator
+     */
+    initialize() {
+        console.log('🤖 Initializing Robot Simulator...');
         
-        this.robot.group.position.set(
-            pose.position.x,
-            pose.position.z,
-            -pose.position.y  // Convert ROS coordinates to Three.js
-        );
+        // Load configuration
+        this.loadConfiguration();
         
-        // Convert quaternion
-        this.robot.group.quaternion.set(
-            pose.orientation.x,
-            pose.orientation.z,
-            -pose.orientation.y,
-            pose.orientation.w
-        );
+        // Setup event listeners
+        this.setupEventListeners();
         
-        // Update UI
-        document.getElementById('position').textContent = 
-            `x: ${pose.position.x.toFixed(2)}, y: ${pose.position.y.toFixed(2)}, z: ${pose.position.z.toFixed(2)}`;
-    }
-    
-    updateVelocityDisplay(twist) {
-        const linear = Math.sqrt(
-            twist.linear.x ** 2 + 
-            twist.linear.y ** 2 + 
-            twist.linear.z ** 2
-        );
+        // Initialize sensor systems
+        this.initializeSensors();
         
-        document.getElementById('velocity').textContent = `${linear.toFixed(2)} m/s`;
-        
-        const angular = Math.atan2(twist.angular.z, 1) * 180 / Math.PI;
-        document.getElementById('orientation').textContent = `${angular.toFixed(1)}°`;
-    }
-    
-    animate() {
-        requestAnimationFrame(() => this.animate());
-        
-        // Update robot animation
-        if (this.robot) {
-            this.robot.update();
+        // Start simulation if auto-start is enabled
+        if (ConfigManager.get('simulator.autoStart', false)) {
+            this.startSimulation();
         }
         
-        this.renderer.render(this.scene, this.camera);
+        console.log('✅ Robot Simulator initialized');
     }
-}
-
-// Control functions
-function startMove(linear, angular) {
-    const linearSpeed = parseFloat(document.getElementById('linear-speed').value);
-    const angularSpeed = parseFloat(document.getElementById('angular-speed').value);
     
-    window.rosConnection.publishVelocity(
-        linear * linearSpeed, 
-        angular * angularSpeed
-    );
-}
-
-function stopMove() {
-    window.rosConnection.publishVelocity(0, 0);
-}
-
-function resetView() {
-    if (window.simulator) {
-        window.simulator.camera.position.set(5, 5, 5);
-        window.simulator.camera.lookAt(0, 0, 0);
+    /**
+     * Load configuration from ConfigManager
+     */
+    loadConfiguration() {
+        // Update robot parameters from config
+        this.robotParams.wheelbase = ConfigManager.get('robot.wheelbase', 0.3);
+        this.robotParams.maxLinearVel = ConfigManager.get('robot.maxLinearVelocity', 1.0);
+        this.robotParams.maxAngularVel = ConfigManager.get('robot.maxAngularVelocity', 2.0);
+        
+        // Load simulation settings
+        this.simulationRate = ConfigManager.get('simulator.updateRate', 50);
+        this.simulationMode = ConfigManager.get('simulator.mode', 'PHYSICS');
+        
+        // Load sensor configurations
+        this.sensors.odometry.noise = ConfigManager.get('simulator.sensors.odometryNoise', 0.001);
+        this.sensors.imu.accelNoise = ConfigManager.get('simulator.sensors.imuAccelNoise', 0.01);
+        this.sensors.lidar.enabled = ConfigManager.get('simulator.sensors.lidarEnabled', false);
+    }
+    
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Listen for velocity commands from ROS Bridge
+        if (window.ROSBridge) {
+            window.ROSBridge.onMessage('cmd_vel', (message) => {
+                this.setCommandVelocity(
+                    message.linear.x,
+                    message.angular.z
+                );
+            });
+        }
+        
+        // Listen for configuration changes
+        ConfigManager.onChange('robot', () => {
+            this.loadConfiguration();
+        });
+        
+        ConfigManager.onChange('simulator', () => {
+            this.loadConfiguration();
+        });
+        
+        // Listen for platform events
+        window.addEventListener('platformInitialized', () => {
+            this.onPlatformReady();
+        });
+        
+        window.addEventListener('systemStarted', () => {
+            this.onSystemStarted();
+        });
+        
+        window.addEventListener('systemStopped', () => {
+            this.onSystemStopped();
+        });
+    }
+    
+    /**
+     * Initialize sensor systems
+     */
+    initializeSensors() {
+        console.log('Initializing sensor simulation...');
+        
+        // Initialize odometry
+        if (this.sensors.odometry.enabled) {
+            this.initializeOdometry();
+        }
+        
+        // Initialize IMU
+        if (this.sensors.imu.enabled) {
+            this.initializeIMU();
+        }
+        
+        // Initialize LiDAR if enabled
+        if (this.sensors.lidar.enabled) {
+            this.initializeLiDAR();
+        }
+        
+        console.log('Sensor systems initialized');
+    }
+    
+    /**
+     * Start simulation
+     */
+    startSimulation() {
+        if (this.isSimulating) {
+            console.warn('Simulation already running');
+            return;
+        }
+        
+        this.isSimulating = true;
+        const deltaTime = 1000 / this.simulationRate; // ms
+        
+        console.log(`🎮 Starting robot simulation at ${this.simulationRate}Hz`);
+        
+        this.simulationInterval = setInterval(() => {
+            this.updateSimulation(deltaTime / 1000); // Convert to seconds
+        }, deltaTime);
+        
+        // Emit simulation started event
+        window.dispatchEvent(new CustomEvent('simulationStarted', {
+            detail: { mode: this.simulationMode, rate: this.simulationRate }
+        }));
+    }
+    
+    /**
+     * Stop simulation
+     */
+    stopSimulation() {
+        if (!this.isSimulating) {
+            console.warn('Simulation not running');
+            return;
+        }
+        
+        this.isSimulating = false;
+        
+        if (this.simulationInterval) {
+            clearInterval(this.simulationInterval);
+            this.simulationInterval = null;
+        }
+        
+        console.log('⏹️ Robot simulation stopped');
+        
+        // Emit simulation stopped event
+        window.dispatchEvent(new CustomEvent('simulationStopped'));
+    }
+    
+    /**
+     * Main simulation update loop
+     * @param {number} dt - Time step in seconds
+     */
+    updateSimulation(dt) {
+        const startTime = performance.now();
+        
+        try {
+            // Update robot physics based on simulation mode
+            switch (this.simulationMode) {
+                case 'PHYSICS':
+                    this.updatePhysicsSimulation(dt);
+                    break;
+                case 'KINEMATIC':
+                    this.updateKinematicSimulation(dt);
+                    break;
+                case 'MOCK':
+                    this.updateMockSimulation(dt);
+                    break;
+            }
+            
+            // Update sensors
+            this.updateSensors(dt);
+            
+            // Publish robot state
+            this.publishRobotState();
+            
+            // Update performance metrics
+            this.updatePerformanceMetrics(startTime);
+            
+        } catch (error) {
+            console.error('Simulation update error:', error);
+            this.stopSimulation();
+        }
+    }
+    
+    /**
+     * Physics-based simulation with forces and accelerations
+     * @param {number} dt - Time step
+     */
+    updatePhysicsSimulation(dt) {
+        // Calculate target velocities from commands
+        const targetLinear = Math.max(Math.min(this.commandVelocity.linear, this.robotParams.maxLinearVel), -this.robotParams.maxLinearVel);
+        const targetAngular = Math.max(Math.min(this.commandVelocity.angular, this.robotParams.maxAngularVel), -this.robotParams.maxAngularVel);
+        
+        // Calculate accelerations (simple P-controller for now)
+        const kp_linear = 5.0;
+        const kp_angular = 10.0;
+        
+        const linearError = targetLinear - this.state.velocity.linear.x;
+        const angularError = targetAngular - this.state.velocity.angular.z;
+        
+        let linearAccel = kp_linear * linearError;
+        let angularAccel = kp_angular * angularError;
+        
+        // Apply acceleration limits
+        linearAccel = Math.max(Math.min(linearAccel, this.robotParams.linearAccel), -this.robotParams.linearAccel);
+        angularAccel = Math.max(Math.min(angularAccel, this.robotParams.angularAccel), -this.robotParams.angularAccel);
+        
+        // Apply friction
+        const frictionForce = -this.robotParams.friction * this.state.velocity.linear.x;
+        linearAccel += frictionForce / this.robotParams.mass;
+        
+        // Update velocities
+        this.state.velocity.linear.x += linearAccel * dt;
+        this.state.velocity.angular.z += angularAccel * dt;
+        
+        // Store accelerations
+        this.state.acceleration.linear.x = linearAccel;
+        this.state.acceleration.angular.z = angularAccel;
+        
+        // Update position and orientation
+        this.updatePose(dt);
+        
+        // Update wheel speeds for differential drive
+        this.updateWheelSpeeds();
+    }
+    
+    /**
+     * Kinematic simulation (no forces, direct velocity control)
+     * @param {number} dt - Time step
+     */
+    updateKinematicSimulation(dt) {
+        // Apply velocity limits
+        this.state.velocity.linear.x = Math.max(Math.min(this.commandVelocity.linear, this.robotParams.maxLinearVel), -this.robotParams.maxLinearVel);
+        this.state.velocity.angular.z = Math.max(Math.min(this.commandVelocity.angular, this.robotParams.maxAngularVel), -this.robotParams.maxAngularVel);
+        
+        // Update position and orientation
+        this.updatePose(dt);
+        
+        // Update wheel speeds
+        this.updateWheelSpeeds();
+        
+        // Clear accelerations for kinematic mode
+        this.state.acceleration.linear.x = 0;
+        this.state.acceleration.angular.z = 0;
+    }
+    
+    /**
+     * Mock simulation for testing (simplified, instant response)
+     * @param {number} dt - Time step
+     */
+    updateMockSimulation(dt) {
+        // Instant velocity response (for testing algorithms)
+        this.state.velocity.linear.x = this.commandVelocity.linear;
+        this.state.velocity.angular.z = this.commandVelocity.angular;
+        
+        // Update position and orientation
+        this.updatePose(dt);
+        
+        // Mock wheel speeds
+        this.updateWheelSpeeds();
+    }
+    
+    /**
+     * Update robot pose (position and orientation)
+     * @param {number} dt - Time step
+     */
+    updatePose(dt) {
+        const v = this.state.velocity.linear.x;
+        const w = this.state.velocity.angular.z;
+        const theta = this.state.orientation;
+        
+        // Calculate position change in global frame
+        const dx = v * Math.cos(theta) * dt;
+        const dy = v * Math.sin(theta) * dt;
+        const dtheta = w * dt;
+        
+        // Update pose
+        this.state.position.x += dx;
+        this.state.position.y += dy;
+        this.state.orientation += dtheta;
+        
+        // Normalize orientation
+        this.state.orientation = this.normalizeAngle(this.state.orientation);
+        
+        // Update timestamp
+        this.state.timestamp = Date.now();
+    }
+    
+    /**
+     * Update wheel speeds for differential drive robot
+     */
+    updateWheelSpeeds() {
+        const v = this.state.velocity.linear.x;
+        const w = this.state.velocity.angular.z;
+        const L = this.robotParams.wheelbase;
+        
+        // Differential drive kinematics
+        this.state.wheelSpeeds.left = (v - w * L / 2) / this.robotParams.wheelRadius;
+        this.state.wheelSpeeds.right = (v + w * L / 2) / this.robotParams.wheelRadius;
+    }
+    
+    /**
+     * Update sensor simulations
+     * @param {number} dt - Time step
+     */
+    updateSensors(dt) {
+        if (this.sensors.odometry.enabled) {
+            this.updateOdometry(dt);
+        }
+        
+        if (this.sensors.imu.enabled) {
+            this.updateIMU(dt);
+        }
+        
+        if (this.sensors.lidar.enabled) {
+            this.updateLiDAR();
+        }
+        
+        if (this.sensors.encoders.enabled) {
+            this.updateEncoders(dt);
+        }
+    }
+    
+    /**
+     * Initialize odometry sensor
+     */
+    initializeOdometry() {
+        console.log('Initializing odometry sensor simulation');
+        this.odometryError = { position: { x: 0.0, y: 0.0 }, orientation: 0.0 };
+    }
+    
+    /**
+     * Update odometry with realistic noise and drift
+     * @param {number} dt - Time step
+     */
+    updateOdometry(dt) {
+        // Add cumulative error to simulate real odometry
+        const distanceTraveled = Math.abs(this.state.velocity.linear.x) * dt;
+        const rotationAmount = Math.abs(this.state.velocity.angular.z) * dt;
+        
+        // Position noise proportional to distance traveled
+        this.odometryError.position.x += (Math.random() - 0.5) * this.sensors.odometry.noise * distanceTraveled;
+        this.odometryError.position.y += (Math.random() - 0.5) * this.sensors.odometry.noise * distanceTraveled;
+        
+        // Orientation drift proportional to rotation
+        this.odometryError.orientation += (Math.random() - 0.5) * this.sensors.odometry.drift * rotationAmount;
+    }
+    
+    /**
+     * Initialize IMU sensor
+     */
+    initializeIMU() {
+        console.log('Initializing IMU sensor simulation');
+        this.imuData = {
+            acceleration: { x: 0, y: 0, z: 9.81 },
+            angularVelocity: { x: 0, y: 0, z: 0 },
+            orientation: { x: 0, y: 0, z: 0, w: 1 }
+        };
+    }
+    
+    /**
+     * Update IMU sensor data
+     * @param {number} dt - Time step
+     */
+    updateIMU(dt) {
+        // Add noise to acceleration
+        this.imuData.acceleration.x = this.state.acceleration.linear.x + (Math.random() - 0.5) * this.sensors.imu.accelNoise;
+        this.imuData.acceleration.y = 0 + (Math.random() - 0.5) * this.sensors.imu.accelNoise;
+        this.imuData.acceleration.z = 9.81 + (Math.random() - 0.5) * this.sensors.imu.accelNoise;
+        
+        // Add noise to angular velocity
+        this.imuData.angularVelocity.x = 0 + (Math.random() - 0.5) * this.sensors.imu.gyroNoise;
+        this.imuData.angularVelocity.y = 0 + (Math.random() - 0.5) * this.sensors.imu.gyroNoise;
+        this.imuData.angularVelocity.z = this.state.velocity.angular.z + (Math.random() - 0.5) * this.sensors.imu.gyroNoise;
+        
+        // Convert orientation to quaternion
+        const yaw = this.state.orientation;
+        this.imuData.orientation = this.eulerToQuaternion(0, 0, yaw);
+    }
+    
+    /**
+     * Initialize LiDAR sensor
+     */
+    initializeLiDAR() {
+        console.log('Initializing LiDAR sensor simulation');
+        this.lidarData = {
+            ranges: new Array(this.sensors.lidar.resolution).fill(this.sensors.lidar.range),
+            angleMin: -Math.PI,
+            angleMax: Math.PI,
+            angleIncrement: (2 * Math.PI) / this.sensors.lidar.resolution,
+            rangeMin: 0.1,
+            rangeMax: this.sensors.lidar.range
+        };
+    }
+    
+    /**
+     * Update LiDAR sensor data
+     */
+    updateLiDAR() {
+        // Simulate LiDAR scan based on environment obstacles
+        for (let i = 0; i < this.sensors.lidar.resolution; i++) {
+            const angle = this.lidarData.angleMin + i * this.lidarData.angleIncrement;
+            const globalAngle = this.state.orientation + angle;
+            
+            // Simulate ray casting to find obstacles
+            let range = this.sensors.lidar.range;
+            
+            // Check against known obstacles
+            for (const obstacle of this.environment.obstacles) {
+                const obstacleRange = this.calculateRangeToObstacle(globalAngle, obstacle);
+                if (obstacleRange < range) {
+                    range = obstacleRange;
+                }
+            }
+            
+            // Add noise
+            range += (Math.random() - 0.5) * this.sensors.lidar.noise;
+            
+            // Apply limits
+            this.lidarData.ranges[i] = Math.max(this.lidarData.rangeMin, Math.min(range, this.lidarData.rangeMax));
+        }
+        
+        // Emit LiDAR data
+        window.dispatchEvent(new CustomEvent('laserScanUpdate', {
+            detail: this.lidarData
+        }));
+    }
+    
+    /**
+     * Update encoder data
+     * @param {number} dt - Time step
+     */
+    updateEncoders(dt) {
+        // Calculate encoder ticks
+        const leftDistance = this.state.wheelSpeeds.left * this.robotParams.wheelRadius * dt;
+        const rightDistance = this.state.wheelSpeeds.right * this.robotParams.wheelRadius * dt;
+        
+        const leftTicks = leftDistance * this.sensors.encoders.ticksPerMeter;
+        const rightTicks = rightDistance * this.sensors.encoders.ticksPerMeter;
+        
+        // Add noise
+        const noisyLeftTicks = leftTicks + (Math.random() - 0.5) * this.sensors.encoders.noise;
+        const noisyRightTicks = rightTicks + (Math.random() - 0.5) * this.sensors.encoders.noise;
+        
+        // Emit encoder data
+        window.dispatchEvent(new CustomEvent('encoderUpdate', {
+            detail: {
+                left: noisyLeftTicks,
+                right: noisyRightTicks,
+                timestamp: Date.now()
+            }
+        }));
+    }
+    
+    /**
+     * Publish robot state to system
+     */
+    publishRobotState() {
+        // Create odometry message with error
+        const noisyPosition = {
+            x: this.state.position.x + this.odometryError.position.x,
+            y: this.state.position.y + this.odometryError.position.y,
+            z: this.state.position.z
+        };
+        
+        const noisyOrientation = this.state.orientation + this.odometryError.orientation;
+        
+        // Create ROS-style odometry message
+        const odometryMessage = {
+            pose: {
+                pose: {
+                    position: noisyPosition,
+                    orientation: this.eulerToQuaternion(0, 0, noisyOrientation)
+                }
+            },
+            twist: {
+                twist: {
+                    linear: this.state.velocity.linear,
+                    angular: this.state.velocity.angular
+                }
+            }
+        };
+        
+        // Emit robot state update
+        window.dispatchEvent(new CustomEvent('robotStateUpdate', {
+            detail: {
+                position: noisyPosition,
+                orientation: noisyOrientation,
+                velocity: this.state.velocity,
+                timestamp: this.state.timestamp
+            }
+        }));
+        
+        // Send to ROS Bridge if available and not in pure simulation mode
+        if (window.ROSBridge && ConfigManager.get('simulator.publishToROS', false)) {
+            // This would publish simulated odometry back to ROS
+            // Useful for testing without hardware
+        }
+    }
+    
+    /**
+     * Set command velocity
+     * @param {number} linear - Linear velocity (m/s)
+     * @param {number} angular - Angular velocity (rad/s)
+     */
+    setCommandVelocity(linear, angular) {
+        this.commandVelocity.linear = linear;
+        this.commandVelocity.angular = angular;
+        this.commandVelocity.timestamp = Date.now();
+    }
+    
+    /**
+     * Reset robot to initial state
+     */
+    resetRobot() {
+        console.log('🔄 Resetting robot simulator');
+        
+        this.state.position = { x: 0.0, y: 0.0, z: 0.0 };
+        this.state.orientation = 0.0;
+        this.state.velocity = {
+            linear: { x: 0.0, y: 0.0, z: 0.0 },
+            angular: { x: 0.0, y: 0.0, z: 0.0 }
+        };
+        this.state.acceleration = {
+            linear: { x: 0.0, y: 0.0, z: 0.0 },
+            angular: { x: 0.0, y: 0.0, z: 0.0 }
+        };
+        this.state.wheelSpeeds = { left: 0.0, right: 0.0 };
+        
+        this.commandVelocity = { linear: 0.0, angular: 0.0, timestamp: Date.now() };
+        this.odometryError = { position: { x: 0.0, y: 0.0 }, orientation: 0.0 };
+        
+        this.state.timestamp = Date.now();
+        
+        // Publish reset state
+        this.publishRobotState();
+        
+        console.log('✅ Robot simulator reset completed');
+    }
+    
+    /**
+     * Set robot pose
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} orientation - Orientation in radians
+     */
+    setRobotPose(x, y, orientation) {
+        this.state.position.x = x;
+        this.state.position.y = y;
+        this.state.orientation = this.normalizeAngle(orientation);
+        this.state.timestamp = Date.now();
+        
+        // Reset odometry error when setting pose
+        this.odometryError = { position: { x: 0.0, y: 0.0 }, orientation: 0.0 };
+        
+        this.publishRobotState();
+        console.log(`Robot pose set to (${x.toFixed(2)}, ${y.toFixed(2)}, ${(orientation * 180/Math.PI).toFixed(1)}°)`);
+    }
+    
+    /**
+     * Add obstacle to environment
+     * @param {object} obstacle - Obstacle definition
+     */
+    addObstacle(obstacle) {
+        this.environment.obstacles.push(obstacle);
+        console.log('Obstacle added to simulation environment');
+    }
+    
+    /**
+     * Remove all obstacles
+     */
+    clearObstacles() {
+        this.environment.obstacles = [];
+        console.log('All obstacles cleared from simulation environment');
+    }
+    
+    /**
+     * Update performance metrics
+     * @param {number} startTime - Update start time
+     */
+    updatePerformanceMetrics(startTime) {
+        const updateTime = performance.now() - startTime;
+        
+        this.performance.updateCount++;
+        this.performance.maxUpdateTime = Math.max(this.performance.maxUpdateTime, updateTime);
+        
+        // Calculate rolling average
+        const alpha = 0.1;
+        this.performance.averageUpdateTime = alpha * updateTime + (1 - alpha) * this.performance.averageUpdateTime;
+        
+        // Update rate calculation
+        const now = Date.now();
+        if (now - this.performance.lastUpdateTime > 1000) {
+            this.performance.updateRate = this.performance.updateCount;
+            this.performance.updateCount = 0;
+            this.performance.lastUpdateTime = now;
+        }
+    }
+    
+    /**
+     * Calculate range to obstacle for LiDAR simulation
+     * @param {number} angle - Ray angle
+     * @param {object} obstacle - Obstacle object
+     * @returns {number} Range to obstacle
+     */
+    calculateRangeToObstacle(angle, obstacle) {
+        // Simple circle obstacle for now
+        if (obstacle.type === 'circle') {
+            const dx = obstacle.x - this.state.position.x;
+            const dy = obstacle.y - this.state.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Check if ray intersects circle
+            const rayToObstacle = Math.atan2(dy, dx);
+            const angleDiff = Math.abs(this.normalizeAngle(angle - rayToObstacle));
+            
+            if (angleDiff < Math.atan2(obstacle.radius, distance)) {
+                return Math.max(0, distance - obstacle.radius);
+            }
+        }
+        
+        return this.sensors.lidar.range;
+    }
+    
+    /**
+     * Convert Euler angles to quaternion
+     * @param {number} roll - Roll angle
+     * @param {number} pitch - Pitch angle
+     * @param {number} yaw - Yaw angle
+     * @returns {object} Quaternion
+     */
+    eulerToQuaternion(roll, pitch, yaw) {
+        const cy = Math.cos(yaw * 0.5);
+        const sy = Math.sin(yaw * 0.5);
+        const cp = Math.cos(pitch * 0.5);
+        const sp = Math.sin(pitch * 0.5);
+        const cr = Math.cos(roll * 0.5);
+        const sr = Math.sin(roll * 0.5);
+        
+        return {
+            w: cy * cp * cr + sy * sp * sr,
+            x: cy * cp * sr - sy * sp * cr,
+            y: sy * cp * sr + cy * sp * cr,
+            z: sy * cp * cr - cy * sp * sr
+        };
+    }
+    
+    /**
+     * Normalize angle to [-π, π]
+     * @param {number} angle - Angle in radians
+     * @returns {number} Normalized angle
+     */
+    normalizeAngle(angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+    
+    /**
+     * Event handlers
+     */
+    onPlatformReady() {
+        console.log('Platform ready, robot simulator standing by');
+    }
+    
+    onSystemStarted() {
+        if (ConfigManager.get('simulator.autoStartWithSystem', true) && !this.isSimulating) {
+            this.startSimulation();
+        }
+    }
+    
+    onSystemStopped() {
+        // Stop robot movement
+        this.setCommandVelocity(0, 0);
+    }
+    
+    /**
+     * Get current robot state
+     * @returns {object} Current robot state
+     */
+    getRobotState() {
+        return {
+            ...this.state,
+            commandVelocity: { ...this.commandVelocity },
+            odometryError: { ...this.odometryError },
+            isSimulating: this.isSimulating,
+            simulationMode: this.simulationMode
+        };
+    }
+    
+    /**
+     * Get simulation performance metrics
+     * @returns {object} Performance metrics
+     */
+    getPerformanceMetrics() {
+        return {
+            ...this.performance,
+            simulationRate: this.simulationRate,
+            isSimulating: this.isSimulating
+        };
+    }
+    
+    /**
+     * Get sensor data
+     * @returns {object} All sensor data
+     */
+    getSensorData() {
+        return {
+            odometry: {
+                position: {
+                    x: this.state.position.x + this.odometryError.position.x,
+                    y: this.state.position.y + this.odometryError.position.y,
+                    z: this.state.position.z
+                },
+                orientation: this.state.orientation + this.odometryError.orientation,
+                velocity: this.state.velocity
+            },
+            imu: this.imuData || null,
+            lidar: this.sensors.lidar.enabled ? this.lidarData : null,
+            encoders: this.sensors.encoders.enabled ? this.state.wheelSpeeds : null
+        };
+    }
+    
+    /**
+     * Set simulation mode
+     * @param {string} mode - Simulation mode (PHYSICS, KINEMATIC, MOCK)
+     */
+    setSimulationMode(mode) {
+        if (['PHYSICS', 'KINEMATIC', 'MOCK'].includes(mode)) {
+            this.simulationMode = mode;
+            ConfigManager.set('simulator.mode', mode);
+            console.log(`Simulation mode changed to: ${mode}`);
+        } else {
+            console.error(`Invalid simulation mode: ${mode}`);
+        }
+    }
+    
+    /**
+     * Cleanup and shutdown
+     */
+    shutdown() {
+        console.log('🛑 Shutting down robot simulator');
+        this.stopSimulation();
+        this.resetRobot();
+        console.log('✅ Robot simulator shutdown completed');
     }
 }
 
-function toggleWireframe() {
-    if (window.simulator && window.simulator.robot) {
-        window.simulator.robot.toggleWireframe();
-    }
-}
+// Create global instance
+window.RobotSimulator = new RobotSimulator();
 
-function toggleGrid() {
-    // Implementation for grid toggle
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = RobotSimulator;
 }
-
-// Initialize when page loads
-window.addEventListener('load', () => {
-    window.simulator = new RobotSimulator();
-});

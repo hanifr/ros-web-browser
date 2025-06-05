@@ -1,0 +1,168 @@
+/* =============================================================================
+   css/style.css - MAIN CORPORATE STYLES
+   ============================================================================= */
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Header Styles */
+.header {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem 2rem;
+    border-bottom: 2px solid #007acc;
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+.header h2 {
+    font-size: 2rem;
+    background: linear-gradient(45deg, #007acc, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.header p {
+    margin: 0.5rem 0 0 0;
+    color: #aaa;
+}
+
+/* Grid Layout */
+.mh-system {
+    display: grid;
+    grid-template-columns: 1fr 1fr 300px 280px;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1800px;
+    margin: 0 auto;
+    overflow-y: auto;
+}
+
+/* Form Elements */
+select, input, button {
+    padding: 8px 12px;
+    margin: 4px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+}
+
+/* Button Variants */
+.btn-primary { 
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); 
+}
+.btn-success { 
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); 
+}
+.btn-warning { 
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); 
+    color: #000; 
+}
+.btn-danger { 
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); 
+}
+
+/* Typography */
+h3 {
+    color: #00d4ff;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    border-bottom: 2px solid rgba(0, 122, 204, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+h4 {
+    color: #00aa88;
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .mh-system {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .mh-system {
+        padding: 10px;
+    }
+    
+    button {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.hidden { display: none; }
+.visible { display: block; }
+
+/* Performance Optimizations */
+.gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Accessibility */
+button:focus, 
+select:focus, 
+input:focus {
+    outline: 2px solid #007acc;
+    outline-offset: 2px;
+}
+
+html, body {
+    overflow: auto; /* or 'visible' */
+    height: 100%;
+}
