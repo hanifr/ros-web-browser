@@ -1,475 +1,1624 @@
+
+<!-- advanced-material-handling.html using flask -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Material Handling System - RoboTech Platform</title>
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/navigation.css">
-    <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/material-handling.css">
-    
-    <!-- External CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
-</head>
-<body>
-    <!-- Back Button to Index -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
-        <a href="../index.html" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Home
-        </a>
-    </div>
-
-    <div id="loading-screen">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <h2>Advanced Material Handling System</h2>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-            <p>Initializing advanced control algorithms...</p>
-        </div>
-    </div>
-
-    <div id="container" style="display: none;">
-        <!-- Header -->
-        <header id="header">
-            <div class="header-left">
-                <div class="brand-logo">
-                    <div class="brand-icon">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <div class="brand-text">
-                        <h1>Advanced Material Handling</h1>
-                        <div class="subtitle">Multi-Algorithm Robot Control Platform v3.0</div>
-                    </div>
-                </div>
-                <div class="connection-status">
-                    <span class="status-dot" id="status-dot"></span>
-                    <span id="connection-status">Connecting...</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
-                <button id="export-btn" class="icon-btn" title="Export Data"><i class="fas fa-download"></i></button>
-                <button id="fullscreen-btn" class="icon-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
-                <button id="help-btn" class="icon-btn" title="Help"><i class="fas fa-question-circle"></i></button>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <div id="main-content">
-            <!-- Control Panel -->
-            <div id="control-panel">
-                <div class="panel-section">
-                    <h3><i class="fas fa-brain" style="color: var(--primary-color);"></i> Control Algorithm</h3>
-                    <div class="control-mode-selector">
-                        <button class="mode-button active" data-mode="proportional">
-                            <span class="mode-icon">📐</span>
-                            <span class="mode-label">Proportional</span>
-                        </button>
-                        <button class="mode-button" data-mode="pid">
-                            <span class="mode-icon">🎯</span>
-                            <span class="mode-label">PID Control</span>
-                        </button>
-                        <button class="mode-button" data-mode="pure_pursuit">
-                            <span class="mode-icon">🏁</span>
-                            <span class="mode-label">Pure Pursuit</span>
-                        </button>
-                        <button class="mode-button" data-mode="state_machine">
-                            <span class="mode-icon">🔄</span>
-                            <span class="mode-label">State Machine</span>
-                        </button>
-                    </div>
-                    
-                    <div id="algorithm-params" class="algorithm-params">
-                        <!-- Parameter controls will be populated here -->
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-map-marked-alt" style="color: var(--primary-color);"></i> Facility Locations</h3>
-                    <div class="location-grid">
-                        <div class="location-card" data-location="storage_a">
-                            <div class="location-header">
-                                <strong>🏪 Storage A</strong>
-                                <span class="location-coords">(0.0, 2.0)</span>
-                            </div>
-                            <div class="material-count">Items: 0</div>
-                        </div>
-                        <div class="location-card" data-location="storage_b">
-                            <div class="location-header">
-                                <strong>🏪 Storage B</strong>
-                                <span class="location-coords">(2.0, 2.0)</span>
-                            </div>
-                            <div class="material-count">Items: 0</div>
-                        </div>
-                        <div class="location-card" data-location="workstation">
-                            <div class="location-header">
-                                <strong>🔧 Workstation</strong>
-                                <span class="location-coords">(2.0, 0.0)</span>
-                            </div>
-                            <div class="material-count">Items: 0</div>
-                        </div>
-                        <div class="location-card robot-here" data-location="home">
-                            <div class="location-header">
-                                <strong>🏠 Home</strong>
-                                <span class="location-coords">(0.0, 0.0)</span>
-                            </div>
-                            <div class="robot-status">🤖 Robot Here</div>
-                        </div>
-                        <div class="location-card" data-location="loading">
-                            <div class="location-header">
-                                <strong>📦 Loading Dock</strong>
-                                <span class="location-coords">(1.0, 0.0)</span>
-                            </div>
-                            <div class="material-count">Items: 0</div>
-                        </div>
-                        <div class="location-card" data-location="inspection">
-                            <div class="location-header">
-                                <strong>🔍 Inspection</strong>
-                                <span class="location-coords">(1.0, 2.0)</span>
-                            </div>
-                            <div class="material-count">Items: 0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-plus-circle" style="color: var(--primary-color);"></i> Create Transport Job</h3>
-                    <div class="job-creation">
-                        <div class="location-selectors">
-                            <select id="pickup-location" class="location-select">
-                                <option value="">📤 Select pickup</option>
-                                <option value="storage_a">🏪 Storage A</option>
-                                <option value="storage_b">🏪 Storage B</option>
-                                <option value="loading">📦 Loading Dock</option>
-                                <option value="workstation">🔧 Workstation</option>
-                                <option value="inspection">🔍 Inspection</option>
-                            </select>
-                            <select id="dropoff-location" class="location-select">
-                                <option value="">📥 Select dropoff</option>
-                                <option value="home">🏠 Home</option>
-                                <option value="storage_a">🏪 Storage A</option>
-                                <option value="storage_b">🏪 Storage B</option>
-                                <option value="workstation">🔧 Workstation</option>
-                                <option value="inspection">🔍 Inspection</option>
-                            </select>
-                        </div>
-                        <div class="quantity-controls">
-                            <input type="number" id="item-quantity" placeholder="Quantity" min="1" max="10" value="1">
-                            <button id="add-job-btn" class="action-btn success">➕ Add Job</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-play-circle" style="color: var(--primary-color);"></i> System Control</h3>
-                    <div class="system-controls">
-                        <button id="start-btn" class="control-btn primary">▶️ Start</button>
-                        <button id="pause-btn" class="control-btn warning">⏸️ Pause</button>
-                        <button id="stop-btn" class="control-btn danger">⏹️ Stop</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status Panel -->
-            <div id="status-panel">
-                <div class="panel-section">
-                    <h3><i class="fas fa-chart-bar" style="color: var(--primary-color);"></i> System Status</h3>
-                    
-                    <div class="status-indicators">
-                        <div class="status-card">
-                            <div class="status-label">System State</div>
-                            <div id="system-state" class="status-value">IDLE</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Control Mode</div>
-                            <div id="control-mode" class="status-value">PROPORTIONAL</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Robot Position</div>
-                            <div id="robot-position" class="status-value">(0.00, 0.00)</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Jobs Completed</div>
-                            <div id="jobs-completed" class="status-value">0</div>
-                        </div>
-                    </div>
-                    
-                    <div class="active-job-section">
-                        <h4>📋 Active Job</h4>
-                        <div id="current-job" class="current-job-display">None</div>
-                    </div>
-                    
-                    <div class="job-queue-section">
-                        <h4>⏳ Job Queue</h4>
-                        <div class="job-queue" id="job-queue">
-                            <!-- Jobs will be displayed here -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-tachometer-alt" style="color: var(--primary-color);"></i> Performance</h3>
-                    <div class="performance-indicators">
-                        <div class="status-card">
-                            <div class="status-label">Distance Error</div>
-                            <div id="distance-error" class="status-value">0.00m</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Heading Error</div>
-                            <div id="heading-error" class="status-value">0.0°</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Linear Velocity</div>
-                            <div id="linear-velocity" class="status-value">0.00m/s</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">Angular Velocity</div>
-                            <div id="angular-velocity" class="status-value">0.0°/s</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3><i class="fas fa-terminal" style="color: var(--primary-color);"></i> System Log</h3>
-                    <div class="system-log" id="system-log">
-                        <!-- Log entries will appear here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Advanced Controls Panel -->
-            <div id="advanced-panel">
-                <div class="panel-section">
-                    <h3><i class="fas fa-exclamation-triangle" style="color: var(--accent-color);"></i> Emergency Controls</h3>
-                    <div class="emergency-controls">
-                        <button id="emergency-stop-btn" class="emergency-btn">🛑 Emergency Stop</button>
-                        <button id="reset-robot-btn" class="action-btn warning">🔄 Reset Robot</button>
-                        <button id="clear-jobs-btn" class="action-btn warning">🗑️ Clear Queue</button>
-                        <button id="return-home-btn" class="action-btn primary">🏠 Return Home</button>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-chart-line" style="color: var(--primary-color);"></i> Performance Metrics</h3>
-                    <div class="performance-metrics">
-                        <div class="status-card">
-                            <div class="status-label">Update Rate</div>
-                            <div id="update-rate" class="status-value">10Hz</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-label">ROS Status</div>
-                            <div id="ros-status" class="status-value">CONNECTED</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-gamepad" style="color: var(--primary-color);"></i> Manual Control</h3>
-                    <div class="manual-controls">
-                        <div class="dpad">
-                            <button class="dpad-btn" data-direction="forward">⬆️</button>
-                            <div class="dpad-middle">
-                                <button class="dpad-btn" data-direction="left">⬅️</button>
-                                <button class="dpad-btn stop" data-direction="stop">⏹️</button>
-                                <button class="dpad-btn" data-direction="right">➡️</button>
-                            </div>
-                            <button class="dpad-btn" data-direction="backward">⬇️</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Excel Integration Panel -->
-            <div id="excel-panel">
-                <div class="panel-section">
-                    <h3><i class="fas fa-file-excel" style="color: var(--accent-color);"></i> Data Collection</h3>
-                    
-                    <div class="collection-status">
-                        <div class="collection-stat">
-                            <div class="stat-label">Status</div>
-                            <div id="collection-status" class="stat-value">STOPPED</div>
-                        </div>
-                        <div class="collection-stat">
-                            <div class="stat-label">Records</div>
-                            <div id="record-count" class="stat-value">0</div>
-                        </div>
-                        <div class="collection-stat">
-                            <div class="stat-label">Duration</div>
-                            <div id="collection-duration" class="stat-value">00:00</div>
-                        </div>
-                        <div class="collection-stat">
-                            <div class="stat-label">Size</div>
-                            <div id="data-size" class="stat-value">0 KB</div>
-                        </div>
-                    </div>
-                    
-                    <div class="excel-controls">
-                        <button id="start-recording-btn" class="action-btn success">▶️ Start Recording</button>
-                        <button id="stop-recording-btn" class="action-btn warning">⏹️ Stop Recording</button>
-                        <button id="export-excel-btn" class="action-btn primary">📊 Export Excel</button>
-                        <button id="clear-data-btn" class="action-btn danger">🗑️ Clear Data</button>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-eye" style="color: var(--primary-color);"></i> Live Data Preview</h3>
-                    <div class="data-preview-container">
-                        <table class="data-preview-table" id="data-preview">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>X</th>
-                                    <th>Y</th>
-                                    <th>Vel</th>
-                                </tr>
-                            </thead>
-                            <tbody id="preview-body">
-                                <tr><td colspan="4" class="no-data">No data collected</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-info-circle" style="color: var(--primary-color);"></i> Export Features</h3>
-                    <div class="export-features">
-                        <ul>
-                            <li>• Position tracking (X, Y coordinates)</li>
-                            <li>• Velocity and heading data</li>
-                            <li>• Job execution timeline</li>
-                            <li>• Control algorithm performance</li>
-                            <li>• Statistical analysis sheets</li>
-                            <li>• Excel-compatible timestamps</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>⚙️ Advanced Settings</h2>
-            <div class="settings-grid">
-                <div class="setting-group">
-                    <h3>Connection</h3>
-                    <label>
-                        WebSocket URL:
-                        <input type="text" id="websocket-url" value="ws://localhost:9090">
-                    </label>
-                    <button id="reconnect-btn" class="action-btn">Reconnect</button>
-                </div>
-                <div class="setting-group">
-                    <h3>Control Parameters</h3>
-                    <label>
-                        <input type="checkbox" id="velocity-smoothing" checked> Velocity Smoothing
-                    </label>
-                    <label>
-                        <input type="checkbox" id="adaptive-control" checked> Adaptive Control
-                    </label>
-                    <label>
-                        Update Rate:
-                        <select id="control-update-rate">
-                            <option value="10" selected>10 Hz</option>
-                            <option value="20">20 Hz</option>
-                            <option value="50">50 Hz</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <h3>Data Collection</h3>
-                    <label>
-                        <input type="checkbox" id="auto-export" checked> Auto Export on Job Complete
-                    </label>
-                    <label>
-                        <input type="checkbox" id="include-performance" checked> Include Performance Data
-                    </label>
-                    <label>
-                        Collection Rate:
-                        <select id="data-collection-rate">
-                            <option value="1">1 Hz</option>
-                            <option value="5" selected>5 Hz</option>
-                            <option value="10">10 Hz</option>
-                        </select>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>❓ Advanced Material Handling Help</h2>
-            <div class="help-content">
-                <h3>🧠 Control Algorithms</h3>
-                <ul>
-                    <li><strong>Proportional:</strong> Simple distance-based control</li>
-                    <li><strong>PID Control:</strong> Advanced control with integral and derivative terms</li>
-                    <li><strong>Pure Pursuit:</strong> Path following algorithm for smooth trajectories</li>
-                    <li><strong>State Machine:</strong> Behavior-based control with discrete states</li>
-                </ul>
-                
-                <h3>🚀 System Operation</h3>
-                <ul>
-                    <li><strong>Create Jobs:</strong> Select pickup and dropoff locations</li>
-                    <li><strong>Start System:</strong> Begin automated job execution</li>
-                    <li><strong>Monitor Performance:</strong> Track control metrics in real-time</li>
-                    <li><strong>Emergency Stop:</strong> Immediate halt for safety</li>
-                </ul>
-                
-                <h3>📊 Data Collection</h3>
-                <ul>
-                    <li><strong>Start Recording:</strong> Begin data collection for analysis</li>
-                    <li><strong>Export Excel:</strong> Generate comprehensive reports</li>
-                    <li><strong>Multiple Sheets:</strong> Data, statistics, control analysis</li>
-                </ul>
-                
-                <h3>🔧 Advanced Features</h3>
-                <ul>
-                    <li><strong>Algorithm Comparison:</strong> Switch between control methods</li>
-                    <li><strong>Parameter Tuning:</strong> Adjust control gains in real-time</li>
-                    <li><strong>Performance Analytics:</strong> Monitor system efficiency</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>🚀 Advanced Material Handling System</title>
     <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
+    <link rel="stylesheet" href="../css/material-handling.css">
+</head>
+<body>
+
+    <div class="header">
+        <h2> Advanced Material Handling System</h2>
+        <p style="margin: 0.5rem 0 0 0; color: #aaa;">Multi-Algorithm Robot Control Platform</p>
+    </div>
     
-    <!-- Platform JavaScript Files -->
-    <script src="../js/platform-material-handling.js"></script>
-    <script src="../js/ros-bridge.js"></script>
-    <script src="../js/control-algorithms.js"></script>
-    <script src="../js/job-manager.js"></script>
-    <script src="../js/excel-integration.js"></script>
-    <script src="../js/material-handling.js"></script>
+    <div class="mh-system">
+        <!-- Control Panel -->
+        <div class="panel">
+            <h3>🎮 System Control</h3>
+            
+            <div class="control-section">
+                <h4> Control Algorithm</h4>
+                <div class="control-mode-selector">
+                    <button class="mode-button active" onclick="setControlMode('proportional')">
+                         Proportional
+                    </button>
+                    <button class="mode-button" onclick="setControlMode('pid')">
+                         PID Control
+                    </button>
+                    <button class="mode-button" onclick="setControlMode('pure_pursuit')">
+                         Pure Pursuit
+                    </button>
+                    <button class="mode-button" onclick="setControlMode('state_machine')">
+                         State Machine
+                    </button>
+                </div>
+                
+                <div id="algorithm-params" class="algorithm-params">
+                    <!-- Parameter controls will be populated here -->
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h4> Facility Locations</h4>
+                <div class="location-grid">
+                    <div class="location-card" data-location="storage_a" onclick="selectLocation('storage_a')">
+                        <strong> Storage A</strong><br>
+                        (0.0, 2.0)<br>
+                        <span class="material-count">Items: 0</span>
+                    </div>
+                    <div class="location-card" data-location="storage_b" onclick="selectLocation('storage_b')">
+                        <strong> Storage B</strong><br>
+                        (2.0, 2.0)<br>
+                        <span class="material-count">Items: 0</span>
+                    </div>
+                    <div class="location-card" data-location="workstation" onclick="selectLocation('workstation')">
+                        <strong> Workstation</strong><br>
+                        (2.0, 0.0)<br>
+                        <span class="material-count">Items: 0</span>
+                    </div>
+                    <div class="location-card robot-here" data-location="home" onclick="selectLocation('home')">
+                        <strong> Home</strong><br>
+                        (0.0, 0.0)<br>
+                        <span class="robot-status"> Robot Here</span>
+                    </div>
+                    <div class="location-card" data-location="loading" onclick="selectLocation('loading')">
+                        <strong> Loading Dock</strong><br>
+                        (1.0, 0.0)<br>
+                        <span class="material-count">Items: 0</span>
+                    </div>
+                    <div class="location-card" data-location="inspection" onclick="selectLocation('inspection')">
+                        <strong> Inspection</strong><br>
+                        (1.0, 2.0)<br>
+                        <span class="material-count">Items: 0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h4>➕ Create Transport Job</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select id="pickup-location">
+                        <option value=""> Select pickup</option>
+                        <option value="storage_a"> Storage A</option>
+                        <option value="storage_b"> Storage B</option>
+                        <option value="loading"> Loading Dock</option>
+                        <option value="workstation"> Workstation</option>
+                        <option value="inspection"> Inspection</option>
+                    </select>
+                    <select id="dropoff-location">
+                        <option value="">Select dropoff</option>
+                        <option value="home">Home</option>
+                        <option value="storage_a">Storage A</option>
+                        <option value="storage_b">Storage B</option>
+                        <option value="workstation">Workstation</option>
+                        <option value="inspection">Inspection</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px;">
+                    <input type="number" id="item-quantity" placeholder="Quantity" min="1" max="10" value="1">
+                    <button onclick="addTransportJob()" class="btn-success">Add Job</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h4>🎛️ System Control</h4>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <button onclick="startSystem()" class="btn-primary">Start</button>
+                    <button onclick="pauseSystem()" class="btn-warning">Pause</button>
+                    <button onclick="stopSystem()" class="btn-danger">Stop</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Panel -->
+        <div class="panel">
+            <h3>System Status</h3>
+            
+            <div class="status-indicators">
+                <div class="status-card">
+                    <div>System State</div>
+                    <div id="system-state" class="status-value">IDLE</div>
+                </div>
+                <div class="status-card">
+                    <div>Control Mode</div>
+                    <div id="control-mode" class="status-value">PROPORTIONAL</div>
+                </div>
+                <div class="status-card">
+                    <div>Robot Position</div>
+                    <div id="robot-position" class="status-value">(0.00, 0.00)</div>
+                </div>
+                <div class="status-card">
+                    <div>Jobs Completed</div>
+                    <div id="jobs-completed" class="status-value">0</div>
+                </div>
+            </div>
+            
+            <h4>Active Job</h4>
+            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 6px; border: 1px solid #555;">
+                <div id="current-job" style="color: #ffffff;">None</div>
+            </div>
+            
+            <h4>Job Queue</h4>
+            <div class="job-queue" id="job-queue">
+                <!-- Jobs will be displayed here -->
+            </div>
+            
+            <h4>Control Performance</h4>
+            <div class="status-indicators">
+                <div class="status-card">
+                    <div>Distance Error</div>
+                    <div id="distance-error" class="status-value">0.00m</div>
+                </div>
+                <div class="status-card">
+                    <div>Heading Error</div>
+                    <div id="heading-error" class="status-value">0.0°</div>
+                </div>
+                <div class="status-card">
+                    <div>Linear Velocity</div>
+                    <div id="linear-velocity" class="status-value">0.00m/s</div>
+                </div>
+                <div class="status-card">
+                    <div>Angular Velocity</div>
+                    <div id="angular-velocity" class="status-value">0.0°/s</div>
+                </div>
+            </div>
+
+            <h4>System Log</h4>
+            <div class="system-log" id="system-log">
+                <!-- Log entries will appear here -->
+            </div>
+
+
+        </div>
+        
+        <!-- Advanced Controls Panel -->
+        <div class="panel">
+            <h3>Advanced Controls</h3>
+            
+            <h4>Emergency Controls</h4>
+            <div style="display: grid; gap: 8px;">
+                <button onclick="emergencyStop()" class="btn-danger">Emergency Stop</button>
+                <button onclick="resetRobot()" class="btn-warning">Reset Robot</button>
+                <button onclick="clearJobs()" class="btn-warning">Clear Queue</button>
+                <button onclick="returnHome()" class="btn-primary">Return Home</button>
+            </div>
+            
+            <h4>System Performance</h4>
+            <div class="status-indicators">
+                <div class="status-card">
+                    <div>Update Rate</div>
+                    <div id="update-rate" class="status-value">10Hz</div>
+                </div>
+                <div class="status-card">
+                    <div>ROS Status</div>
+                    <div id="ros-status" class="status-value">CONNECTED</div>
+                </div>
+            </div>
+            
+            <h4>Manual Control</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0;">
+                <button onclick="manualMove('forward')" style="grid-column: 2;">Forward</button>
+                <button onclick="manualMove('left')" style="grid-column: 1; grid-row: 2;">Left</button>
+                <button onclick="manualMove('stop')" style="grid-column: 2; grid-row: 2;">Stop</button>
+                <button onclick="manualMove('right')" style="grid-column: 3; grid-row: 2;">Right</button>
+                <button onclick="manualMove('backward')" style="grid-column: 2; grid-row: 3;">Reverse</button>
+            </div>
+        </div>
+
+        <!-- Excel Integration Panel -->
+        <div class="panel">
+            <h3>Excel Integration</h3>
+            
+            <h4>Data Collection</h4>
+            <div class="collection-status">
+                <div class="collection-stat">
+                    <div>Status</div>
+                    <div id="collection-status" class="collection-stat-value">STOPPED</div>
+                </div>
+                <div class="collection-stat">
+                    <div>Records</div>
+                    <div id="record-count" class="collection-stat-value">0</div>
+                </div>
+                <div class="collection-stat">
+                    <div>Duration</div>
+                    <div id="collection-duration" class="collection-stat-value">00:00</div>
+                </div>
+                <div class="collection-stat">
+                    <div>Size</div>
+                    <div id="data-size" class="collection-stat-value">0 KB</div>
+                </div>
+            </div>
+            
+            <div class="excel-controls">
+                <button onclick="startDataCollection()" class="btn-success">Start Recording</button>
+                <button onclick="stopDataCollection()" class="btn-warning">Stop Recording</button>
+                <button onclick="exportToExcel()" class="btn-primary">Export Excel</button>
+                <button onclick="clearDataCollection()" class="btn-danger">Clear Data</button>
+            </div>
+            
+            <h4>Live Data Preview</h4>
+            <div style="max-height: 180px; overflow-y: auto; border: 1px solid #555; border-radius: 6px;">
+                <table class="data-preview-table" id="data-preview">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Time</th>
+                            <th style="width: 25%;">X</th>
+                            <th style="width: 25%;">Y</th>
+                            <th style="width: 25%;">Vel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview-body">
+                        <tr><td colspan="4" style="text-align: center; color: #888; font-style: italic;">No data collected</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h4>Export Features</h4>
+            <div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">
+                • Position tracking (X, Y coordinates)<br>
+                • Velocity and heading data<br>
+                • Job execution timeline<br>
+                • Control algorithm performance<br>
+                • Statistical analysis sheets<br>
+                • Excel-compatible timestamps
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Initialize application when page loads
-        window.addEventListener('load', () => {
-            // Hide loading screen after a short delay
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('container').style.display = 'flex';
+        // =============================================================================
+        // GLOBAL VARIABLES AND INITIALIZATION
+        // =============================================================================
+        
+        // ROS 2 connection
+        // var ros = new ROSLIB.Ros({ url: 'ws://' + window.location.hostname + ':9090' });
+        var ros = new ROSLIB.Ros({ url: 'ws://localhost:9090' });
+        
+        var isConnected = false;
+        
+        // System state
+        var systemState = 'IDLE';  // IDLE, RUNNING, PAUSED
+        var jobQueue = [];
+        var currentJob = null;
+        var jobsCompleted = 0;
+        var robotPosition = { x: 0, y: 0 };
+        var robotOrientation = 0;
+        var robotVelocity = { linear: 0, angular: 0 };
+        
+        // Control system
+        var currentControlMode = 'proportional';
+        var navigationInterval = null;
+        var currentNavigationTarget = null;
+        
+        // Performance monitoring
+        var lastUpdateTime = Date.now();
+        var updateCount = 0;
+        var distanceError = 0;
+        var headingError = 0;
+        
+        // Excel Data Collection
+        var collectingData = false;
+        var robotExcelData = [];
+        var dataCollectionStartTime = null;
+        var collectionTimer = null;
+        var lastJobEvent = null;
+        
+        // Location coordinates
+        var locations = {
+            'home': { x: 0.0, y: 0.0, name: 'Home Base' },
+            'storage_a': { x: 0.0, y: 2.0, name: 'Storage A' },
+            'storage_b': { x: 2.0, y: 2.0, name: 'Storage B' },
+            'workstation': { x: 2.0, y: 0.0, name: 'Workstation' },
+            'loading': { x: 1.0, y: 0.0, name: 'Loading Dock' },
+            'inspection': { x: 1.0, y: 2.0, name: 'Inspection' }
+        };
+        
+        // Material counts at each location
+        var materialCounts = {
+            'storage_a': 8,
+            'storage_b': 5,
+            'loading': 15,
+            'inspection': 3,
+            'workstation': 0,
+            'home': 0
+        };
+        
+        // =============================================================================
+        // ADVANCED CONTROL ALGORITHMS
+        // =============================================================================
+        
+        // Control Algorithm Parameters
+        var controlParams = {
+            proportional: {
+                kp_linear: 0.8,
+                kp_angular: 2.5,
+                max_linear: 0.6,
+                max_angular: 1.2
+            },
+            pid: {
+                kp_linear: 1.0, ki_linear: 0.15, kd_linear: 0.08,
+                kp_angular: 3.5, ki_angular: 0.25, kd_angular: 0.12,
+                max_linear: 0.7, max_angular: 1.5,
+                integral_limit: 1.0
+            },
+            pure_pursuit: {
+                lookahead_distance: 0.6,
+                max_linear: 0.65,
+                max_angular: 1.3,
+                kp_linear: 0.9
+            },
+            state_machine: {
+                arrival_tolerance: 0.18,
+                heading_tolerance: 0.2,
+                max_linear: 0.5,
+                max_angular: 1.0
+            }
+        };
+        
+        // PID Controller State
+        var pidState = {
+            prevLinearError: 0,
+            prevAngularError: 0,
+            linearErrorIntegral: 0,
+            angularErrorIntegral: 0,
+            dt: 0.1
+        };
+        
+        // Velocity Smoother
+        var velocitySmoother = {
+            currentLinear: 0,
+            currentAngular: 0,
+            maxLinearAccel: 0.8,
+            maxAngularAccel: 1.5,
+            dt: 0.1,
+            
+            smooth: function(targetLinear, targetAngular) {
+                var maxLinearChange = this.maxLinearAccel * this.dt;
+                var maxAngularChange = this.maxAngularAccel * this.dt;
                 
-                // Initialize the material handling system
-                window.materialHandling = new MaterialHandlingSystem();
-            }, 2000);
+                var linearChange = targetLinear - this.currentLinear;
+                var angularChange = targetAngular - this.currentAngular;
+                
+                linearChange = Math.max(Math.min(linearChange, maxLinearChange), -maxLinearChange);
+                angularChange = Math.max(Math.min(angularChange, maxAngularChange), -maxAngularChange);
+                
+                this.currentLinear += linearChange;
+                this.currentAngular += angularChange;
+                
+                return {
+                    linear: this.currentLinear,
+                    angular: this.currentAngular
+                };
+            }
+        };
+        
+        // Robot State Machine
+        var robotStateMachine = {
+            state: 'IDLE', // IDLE, NAVIGATING, PICKING, DROPPING, ERROR
+            targetLocation: null,
+            stateStartTime: 0,
+            
+            update: function() {
+                switch(this.state) {
+                    case 'IDLE':
+                        if (currentJob && systemState === 'RUNNING') {
+                            this.setState('NAVIGATING');
+                            this.targetLocation = (currentJob.stage === 'PICKUP') ? 
+                                                 currentJob.pickup : currentJob.dropoff;
+                            startNavigation(this.targetLocation);
+                        }
+                        break;
+                        
+                    case 'NAVIGATING':
+                        if (this.hasArrived()) {
+                            this.setState((currentJob.stage === 'PICKUP') ? 'PICKING' : 'DROPPING');
+                            stopNavigation();
+                            this.performAction();
+                        }
+                        break;
+                        
+                    case 'PICKING':
+                        if (Date.now() - this.stateStartTime > 2500) {
+                            materialCounts[currentJob.pickup] -= currentJob.quantity;
+                            updateMaterialCounts();
+                            currentJob.stage = 'TRANSPORT';
+                            this.setState('IDLE');
+                            logMessage('📦 Pickup completed');
+                        }
+                        break;
+                        
+                    case 'DROPPING':
+                        if (Date.now() - this.stateStartTime > 2500) {
+                            materialCounts[currentJob.dropoff] += currentJob.quantity;
+                            updateMaterialCounts();
+                            this.completeJob();
+                            this.setState('IDLE');
+                            logMessage('📦 Dropoff completed');
+                        }
+                        break;
+                        
+                    case 'ERROR':
+                        this.handleError();
+                        break;
+                }
+            },
+            
+            setState: function(newState) {
+                this.state = newState;
+                this.stateStartTime = Date.now();
+                logMessage(`🔄 State: ${newState}`);
+            },
+            
+            hasArrived: function() {
+                var target = locations[this.targetLocation];
+                var distance = Math.sqrt(
+                    Math.pow(robotPosition.x - target.x, 2) + 
+                    Math.pow(robotPosition.y - target.y, 2)
+                );
+                return distance < controlParams.state_machine.arrival_tolerance;
+            },
+            
+            performAction: function() {
+                stopRobot();
+                logMessage(`🤖 Performing ${this.state.toLowerCase()} operation...`);
+            },
+            
+            completeJob: function() {
+                jobsCompleted++;
+                document.getElementById('jobs-completed').textContent = jobsCompleted;
+                
+                logMessage(`✅ Job completed: ${currentJob.quantity} items moved from ${locations[currentJob.pickup].name} to ${locations[currentJob.dropoff].name}`);
+                
+                currentJob = null;
+                document.getElementById('current-job').textContent = 'None';
+                
+                setTimeout(() => {
+                    startNextJob();
+                }, 1000);
+            },
+            
+            handleError: function() {
+                stopRobot();
+                pauseSystem();
+                logMessage('❌ Error state - system paused');
+                this.setState('IDLE');
+            }
+        };
+        
+        // =============================================================================
+        // NAVIGATION CONTROL ALGORITHMS
+        // =============================================================================
+        
+        function startNavigation(locationId) {
+            if (navigationInterval) {
+                clearInterval(navigationInterval);
+            }
+            
+            currentNavigationTarget = locationId;
+            var target = locations[locationId];
+            logMessage(`🎯 Navigating to ${target.name} using ${currentControlMode.toUpperCase()} control`);
+            
+            // Reset PID state when starting new navigation
+            resetPIDState();
+            
+            navigationInterval = setInterval(function() {
+                if (systemState !== 'RUNNING' || !currentNavigationTarget) {
+                    stopNavigation();
+                    return;
+                }
+                
+                updateNavigationControl();
+            }, 100); // 10 Hz update rate
+        }
+        
+        function stopNavigation() {
+            if (navigationInterval) {
+                clearInterval(navigationInterval);
+                navigationInterval = null;
+            }
+            currentNavigationTarget = null;
+            stopRobot();
+        }
+        
+        function updateNavigationControl() {
+            var target = locations[currentNavigationTarget];
+            var dx = target.x - robotPosition.x;
+            var dy = target.y - robotPosition.y;
+            var distance = Math.sqrt(dx*dx + dy*dy);
+            
+            // Update performance metrics
+            distanceError = distance;
+            updatePerformanceDisplay();
+            
+            if (distance < 0.15) {
+                stopNavigation();
+                logMessage(`✅ Arrived at ${target.name}`);
+                return;
+            }
+            
+            var velocities;
+            
+            switch(currentControlMode) {
+                case 'proportional':
+                    velocities = calculateProportionalControl(target, distance, dx, dy);
+                    break;
+                case 'pid':
+                    velocities = calculatePIDControl(target, distance, dx, dy);
+                    break;
+                case 'pure_pursuit':
+                    velocities = calculatePurePursuitControl(target, distance, dx, dy);
+                    break;
+                case 'state_machine':
+                    velocities = calculateStateMachineControl(target, distance, dx, dy);
+                    break;
+                default:
+                    velocities = { linear: 0, angular: 0 };
+            }
+            
+            // Apply velocity smoothing
+            var smoothedVel = velocitySmoother.smooth(velocities.linear, velocities.angular);
+            
+            // Publish velocities
+            publishVelocity(smoothedVel.linear, smoothedVel.angular);
+        }
+        
+        function calculateProportionalControl(target, distance, dx, dy) {
+            var params = controlParams.proportional;
+            
+            var targetHeading = Math.atan2(dy, dx);
+            var headingError = normalizeAngle(targetHeading - robotOrientation);
+            
+            var linearVel = Math.min(params.kp_linear * distance, params.max_linear);
+            var angularVel = Math.max(Math.min(params.kp_angular * headingError, params.max_angular), -params.max_angular);
+            
+            // Store heading error for display
+            window.headingError = headingError * 180 / Math.PI;
+            
+            return { linear: linearVel, angular: angularVel };
+        }
+        
+        function calculatePIDControl(target, distance, dx, dy) {
+            var params = controlParams.pid;
+            
+            var targetHeading = Math.atan2(dy, dx);
+            var headingError = normalizeAngle(targetHeading - robotOrientation);
+            
+            // PID for linear velocity
+            pidState.linearErrorIntegral += distance * pidState.dt;
+            pidState.linearErrorIntegral = Math.max(Math.min(pidState.linearErrorIntegral, params.integral_limit), -params.integral_limit);
+            
+            var linearErrorDerivative = (distance - pidState.prevLinearError) / pidState.dt;
+            var linearVel = params.kp_linear * distance + 
+                           params.ki_linear * pidState.linearErrorIntegral + 
+                           params.kd_linear * linearErrorDerivative;
+            
+            // PID for angular velocity
+            pidState.angularErrorIntegral += headingError * pidState.dt;
+            pidState.angularErrorIntegral = Math.max(Math.min(pidState.angularErrorIntegral, params.integral_limit), -params.integral_limit);
+            
+            var angularErrorDerivative = (headingError - pidState.prevAngularError) / pidState.dt;
+            var angularVel = params.kp_angular * headingError + 
+                            params.ki_angular * pidState.angularErrorIntegral + 
+                            params.kd_angular * angularErrorDerivative;
+            
+            // Store previous errors
+            pidState.prevLinearError = distance;
+            pidState.prevAngularError = headingError;
+            
+            // Apply limits
+            linearVel = Math.max(Math.min(linearVel, params.max_linear), 0);
+            angularVel = Math.max(Math.min(angularVel, params.max_angular), -params.max_angular);
+            
+            // Store heading error for display
+            window.headingError = headingError * 180 / Math.PI;
+            
+            return { linear: linearVel, angular: angularVel };
+        }
+        
+        function calculatePurePursuitControl(target, distance, dx, dy) {
+            var params = controlParams.pure_pursuit;
+            
+            // Transform target to robot local frame
+            var cos_theta = Math.cos(robotOrientation);
+            var sin_theta = Math.sin(robotOrientation);
+            
+            var local_x = cos_theta * dx + sin_theta * dy;
+            var local_y = -sin_theta * dx + cos_theta * dy;
+            
+            // Calculate curvature using Pure Pursuit formula
+            var L = Math.min(params.lookahead_distance, distance);
+            var curvature = (L > 0.01) ? 2 * local_y / (L * L) : 0;
+            
+            // Calculate velocities
+            var linearVel = Math.min(params.kp_linear * distance, params.max_linear);
+            var angularVel = curvature * linearVel;
+            
+            // Limit angular velocity
+            angularVel = Math.max(Math.min(angularVel, params.max_angular), -params.max_angular);
+            
+            // Store heading error for display
+            window.headingError = Math.atan2(local_y, local_x) * 180 / Math.PI;
+            
+            return { linear: linearVel, angular: angularVel };
+        }
+        
+        function calculateStateMachineControl(target, distance, dx, dy) {
+            var params = controlParams.state_machine;
+            
+            var targetHeading = Math.atan2(dy, dx);
+            var headingError = normalizeAngle(targetHeading - robotOrientation);
+            
+            // State-based control
+            var linearVel = 0;
+            var angularVel = 0;
+            
+            if (Math.abs(headingError) > params.heading_tolerance) {
+                // First align heading
+                angularVel = Math.sign(headingError) * Math.min(Math.abs(headingError) * 2.0, params.max_angular);
+            } else {
+                // Then move forward
+                linearVel = Math.min(distance * 1.5, params.max_linear);
+                angularVel = headingError * 1.0; // Small correction
+            }
+            
+            // Store heading error for display
+            window.headingError = headingError * 180 / Math.PI;
+            
+            return { linear: linearVel, angular: angularVel };
+        }
+        
+        function resetPIDState() {
+            pidState.prevLinearError = 0;
+            pidState.prevAngularError = 0;
+            pidState.linearErrorIntegral = 0;
+            pidState.angularErrorIntegral = 0;
+        }
+        
+        function normalizeAngle(angle) {
+            while (angle > Math.PI) angle -= 2 * Math.PI;
+            while (angle < -Math.PI) angle += 2 * Math.PI;
+            return angle;
+        }
+        
+        function publishVelocity(linear, angular) {
+            if (!cmdVel || !isConnected) return;
+            
+            // Store current velocities for monitoring
+            robotVelocity.linear = linear;
+            robotVelocity.angular = angular;
+            
+            var twist = new ROSLIB.Message({
+                linear: { x: linear, y: 0, z: 0 },
+                angular: { x: 0, y: 0, z: angular }
+            });
+            cmdVel.publish(twist);
+        }
+        
+        // =============================================================================
+        // ROS 2 COMMUNICATION
+        // =============================================================================
+        
+        // ROS 2 topics
+        var cmdVel = new ROSLIB.Topic({
+            ros: ros,
+            name: '/cmd_vel',
+            messageType: 'geometry_msgs/Twist'
         });
+        
+        var odomSubscriber = new ROSLIB.Topic({
+            ros: ros,
+            name: '/odom',
+            messageType: 'nav_msgs/Odometry'
+        });
+        
+        // ROS connection handling
+        ros.on('connection', function() {
+            isConnected = true;
+            document.getElementById('ros-status').textContent = 'CONNECTED';
+            document.getElementById('ros-status').style.color = '#00ff88';
+            logMessage('✅ Connected to ROS Bridge');
+        });
+        
+        ros.on('error', function(error) {
+            isConnected = false;
+            document.getElementById('ros-status').textContent = 'ERROR';
+            document.getElementById('ros-status').style.color = '#ff4444';
+            logMessage('❌ ROS Connection Error: ' + error);
+            
+            if (systemState === 'RUNNING') {
+                pauseSystem();
+                logMessage('⚠️ System auto-paused due to connection loss');
+            }
+        });
+        
+        ros.on('close', function() {
+            isConnected = false;
+            document.getElementById('ros-status').textContent = 'DISCONNECTED';
+            document.getElementById('ros-status').style.color = '#ffaa00';
+            logMessage('🔌 Disconnected from ROS Bridge');
+        });
+        
+        // Subscribe to robot odometry
+        odomSubscriber.subscribe(function(message) {
+            robotPosition.x = message.pose.pose.position.x;
+            robotPosition.y = message.pose.pose.position.y;
+            
+            // Extract robot orientation from quaternion
+            var orientation = message.pose.pose.orientation;
+            robotOrientation = Math.atan2(
+                2 * (orientation.w * orientation.z + orientation.x * orientation.y),
+                1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z)
+            );
+            
+            // Calculate velocity
+            var velocity = message.twist.twist.linear;
+            var speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+            
+            // Update display
+            document.getElementById('robot-position').textContent = 
+                `(${robotPosition.x.toFixed(2)}, ${robotPosition.y.toFixed(2)})`;
+                
+            updateRobotLocationIndicator();
+            
+            // Excel Data Collection
+            if (collectingData) {
+                var currentTime = new Date();
+                var dataPoint = {
+                    timestamp: currentTime.toISOString(),
+                    time_seconds: (currentTime - dataCollectionStartTime) / 1000,
+                    x_position: robotPosition.x,
+                    y_position: robotPosition.y,
+                    velocity: speed,
+                    heading_deg: robotOrientation * 180 / Math.PI,
+                    control_mode: currentControlMode,
+                    system_state: systemState,
+                    current_job: currentJob ? `${locations[currentJob.pickup].name} → ${locations[currentJob.dropoff].name}` : 'None',
+                    job_stage: currentJob ? currentJob.stage : 'IDLE',
+                    distance_error: distanceError,
+                    heading_error: window.headingError || 0,
+                    linear_velocity_cmd: robotVelocity.linear,
+                    angular_velocity_cmd: robotVelocity.angular,
+                    excel_timestamp: currentTime.getTime() / 86400000 + 25569
+                };
+                
+                robotExcelData.push(dataPoint);
+                updateDataCollectionDisplay();
+                updateDataPreview();
+            }
+            
+            // Update performance counter
+            updateCount++;
+            var now = Date.now();
+            if (now - lastUpdateTime > 1000) {
+                document.getElementById('update-rate').textContent = `${updateCount}Hz`;
+                updateCount = 0;
+                lastUpdateTime = now;
+            }
+            
+            // Update state machine if using that mode
+            if (currentControlMode === 'state_machine') {
+                robotStateMachine.update();
+            } else if (currentJob && systemState === 'RUNNING') {
+                checkJobProgress();
+            }
+        });
+        
+        // =============================================================================
+        // USER INTERFACE FUNCTIONS
+        // =============================================================================
+        
+        function setControlMode(mode) {
+            currentControlMode = mode;
+            document.getElementById('control-mode').textContent = mode.toUpperCase();
+            
+            // Update mode buttons
+            document.querySelectorAll('.mode-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Reset navigation with new mode
+            if (navigationInterval) {
+                stopNavigation();
+                if (currentNavigationTarget) {
+                    setTimeout(() => {
+                        startNavigation(currentNavigationTarget);
+                    }, 100);
+                }
+            }
+            
+            // Update parameter display
+            updateParameterDisplay();
+            
+            logMessage(`🔧 Control mode changed to: ${mode.toUpperCase()}`);
+        }
+        
+        function updateParameterDisplay() {
+            var paramsDiv = document.getElementById('algorithm-params');
+            var params = controlParams[currentControlMode];
+            var html = '';
+            
+            switch(currentControlMode) {
+                case 'proportional':
+                    html = `
+                        <div class="param-row">
+                            <label>Linear Gain (Kp):</label>
+                            <input type="number" step="0.1" value="${params.kp_linear}" 
+                                   onchange="controlParams.proportional.kp_linear = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Angular Gain (Kp):</label>
+                            <input type="number" step="0.1" value="${params.kp_angular}" 
+                                   onchange="controlParams.proportional.kp_angular = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Max Linear Speed:</label>
+                            <input type="number" step="0.1" value="${params.max_linear}" 
+                                   onchange="controlParams.proportional.max_linear = parseFloat(this.value)" class="param-input">
+                        </div>
+                    `;
+                    break;
+                case 'pid':
+                    html = `
+                        <div class="param-row">
+                            <label>Linear Kp:</label>
+                            <input type="number" step="0.1" value="${params.kp_linear}" 
+                                   onchange="controlParams.pid.kp_linear = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Linear Ki:</label>
+                            <input type="number" step="0.01" value="${params.ki_linear}" 
+                                   onchange="controlParams.pid.ki_linear = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Angular Kp:</label>
+                            <input type="number" step="0.1" value="${params.kp_angular}" 
+                                   onchange="controlParams.pid.kp_angular = parseFloat(this.value)" class="param-input">
+                        </div>
+                    `;
+                    break;
+                case 'pure_pursuit':
+                    html = `
+                        <div class="param-row">
+                            <label>Lookahead Distance:</label>
+                            <input type="number" step="0.1" value="${params.lookahead_distance}" 
+                                   onchange="controlParams.pure_pursuit.lookahead_distance = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Linear Gain:</label>
+                            <input type="number" step="0.1" value="${params.kp_linear}" 
+                                   onchange="controlParams.pure_pursuit.kp_linear = parseFloat(this.value)" class="param-input">
+                        </div>
+                    `;
+                    break;
+                case 'state_machine':
+                    html = `
+                        <div class="param-row">
+                            <label>Arrival Tolerance:</label>
+                            <input type="number" step="0.05" value="${params.arrival_tolerance}" 
+                                   onchange="controlParams.state_machine.arrival_tolerance = parseFloat(this.value)" class="param-input">
+                        </div>
+                        <div class="param-row">
+                            <label>Heading Tolerance:</label>
+                            <input type="number" step="0.05" value="${params.heading_tolerance}" 
+                                   onchange="controlParams.state_machine.heading_tolerance = parseFloat(this.value)" class="param-input">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            paramsDiv.innerHTML = html;
+        }
+        
+        function updatePerformanceDisplay() {
+            document.getElementById('distance-error').textContent = `${distanceError.toFixed(2)}m`;
+            document.getElementById('heading-error').textContent = `${(window.headingError || 0).toFixed(1)}°`;
+            document.getElementById('linear-velocity').textContent = `${robotVelocity.linear.toFixed(2)}m/s`;
+            document.getElementById('angular-velocity').textContent = `${(robotVelocity.angular * 180 / Math.PI).toFixed(1)}°/s`;
+        }
+        
+        function selectLocation(locationId) {
+            document.querySelectorAll('.location-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-location="${locationId}"]`).classList.add('selected');
+            logMessage(`📍 Selected location: ${locations[locationId].name}`);
+        }
+        
+        function updateRobotLocationIndicator() {
+            document.querySelectorAll('.location-card').forEach(card => {
+                card.classList.remove('robot-here');
+                card.querySelector('.robot-status')?.remove();
+            });
+            
+            var closestLocation = null;
+            var minDistance = Infinity;
+            
+            Object.keys(locations).forEach(locId => {
+                var loc = locations[locId];
+                var distance = Math.sqrt(
+                    Math.pow(robotPosition.x - loc.x, 2) + 
+                    Math.pow(robotPosition.y - loc.y, 2)
+                );
+                
+                if (distance < minDistance && distance < 0.3) {
+                    minDistance = distance;
+                    closestLocation = locId;
+                }
+            });
+            
+            if (closestLocation) {
+                var card = document.querySelector(`[data-location="${closestLocation}"]`);
+                card.classList.add('robot-here');
+                
+                var statusSpan = document.createElement('span');
+                statusSpan.className = 'robot-status';
+                statusSpan.innerHTML = '🤖 Robot Here';
+                card.appendChild(statusSpan);
+            }
+        }
+        
+        function updateMaterialCounts() {
+            Object.keys(materialCounts).forEach(locId => {
+                var card = document.querySelector(`[data-location="${locId}"]`);
+                var countSpan = card.querySelector('.material-count');
+                if (countSpan) {
+                    countSpan.textContent = `Items: ${materialCounts[locId]}`;
+                }
+            });
+        }
+        
+        // =============================================================================
+        // JOB MANAGEMENT FUNCTIONS
+        // =============================================================================
+        
+        function addTransportJob() {
+            var pickup = document.getElementById('pickup-location').value;
+            var dropoff = document.getElementById('dropoff-location').value;
+            var quantity = parseInt(document.getElementById('item-quantity').value) || 1;
+            
+            if (!pickup || !dropoff) {
+                alert('Please select both pickup and dropoff locations');
+                return;
+            }
+            
+            if (pickup === dropoff) {
+                alert('Pickup and dropoff locations cannot be the same');
+                return;
+            }
+            
+            if (materialCounts[pickup] < quantity) {
+                alert(`Not enough items at ${locations[pickup].name}. Available: ${materialCounts[pickup]}`);
+                return;
+            }
+            
+            var job = {
+                id: Date.now(),
+                pickup: pickup,
+                dropoff: dropoff,
+                quantity: quantity,
+                status: 'QUEUED',
+                created: new Date().toLocaleTimeString()
+            };
+            
+            jobQueue.push(job);
+            updateJobQueueDisplay();
+            logMessage(`➕ Job added: Move ${quantity} items from ${locations[pickup].name} to ${locations[dropoff].name}`);
+            
+            // Reset form
+            document.getElementById('pickup-location').value = '';
+            document.getElementById('dropoff-location').value = '';
+            document.getElementById('item-quantity').value = '1';
+        }
+        
+        function startSystem() {
+            if (!isConnected) {
+                alert('Cannot start system - ROS Bridge not connected');
+                logMessage('❌ Start failed: ROS Bridge not connected');
+                return;
+            }
+            
+            if (jobQueue.length === 0) {
+                alert('No jobs in queue. Add some transport jobs first.');
+                return;
+            }
+            
+            systemState = 'RUNNING';
+            document.getElementById('system-state').textContent = 'RUNNING';
+            document.getElementById('system-state').style.color = '#00ff88';
+            logMessage('▶️ System started');
+            
+            if (!currentJob) {
+                startNextJob();
+            }
+        }
+        
+        function pauseSystem() {
+            systemState = 'PAUSED';
+            document.getElementById('system-state').textContent = 'PAUSED';
+            document.getElementById('system-state').style.color = '#ffaa00';
+            stopNavigation();
+            stopRobot();
+            logMessage('⏸️ System paused');
+        }
+        
+        function stopSystem() {
+            systemState = 'IDLE';
+            document.getElementById('system-state').textContent = 'IDLE';
+            document.getElementById('system-state').style.color = '#aaaaaa';
+            stopNavigation();
+            stopRobot();
+            
+            if (currentJob) {
+                currentJob.status = 'CANCELLED';
+                jobQueue.unshift(currentJob);
+                currentJob = null;
+            }
+            
+            document.getElementById('current-job').textContent = 'None';
+            updateJobQueueDisplay();
+            logMessage('⏹️ System stopped');
+        }
+        
+        function startNextJob() {
+            if (jobQueue.length === 0 || systemState !== 'RUNNING') {
+                return;
+            }
+            
+            currentJob = jobQueue.shift();
+            currentJob.status = 'ACTIVE';
+            currentJob.stage = 'PICKUP';
+            
+            document.getElementById('current-job').innerHTML = 
+                `<strong>Moving ${currentJob.quantity} items</strong><br>
+                 ${locations[currentJob.pickup].name} → ${locations[currentJob.dropoff].name}<br>
+                 <span style="color: #00ff88;">Stage: ${currentJob.stage}</span>`;
+                
+            updateJobQueueDisplay();
+            logMessage(`🚀 Starting job: Move ${currentJob.quantity} items from ${locations[currentJob.pickup].name} to ${locations[currentJob.dropoff].name}`);
+            
+            // Start navigation to pickup location
+            startNavigation(currentJob.pickup);
+        }
+        
+        function checkJobProgress() {
+            if (!currentJob || currentControlMode === 'state_machine') return;
+            
+            var targetLocation = (currentJob.stage === 'PICKUP') ? currentJob.pickup : currentJob.dropoff;
+            var target = locations[targetLocation];
+            
+            var distance = Math.sqrt(
+                Math.pow(robotPosition.x - target.x, 2) + 
+                Math.pow(robotPosition.y - target.y, 2)
+            );
+            
+            if (distance < 0.25 && (!currentJob.arrivedAt || currentJob.arrivedAt !== targetLocation)) {
+                currentJob.arrivedAt = targetLocation;
+                stopNavigation();
+                
+                if (currentJob.stage === 'PICKUP') {
+                    logMessage(`🔄 Arriving at ${locations[currentJob.pickup].name} for pickup...`);
+                    
+                    setTimeout(() => {
+                        logMessage(`📦 Picking up ${currentJob.quantity} items from ${locations[currentJob.pickup].name}`);
+                        materialCounts[currentJob.pickup] -= currentJob.quantity;
+                        updateMaterialCounts();
+                        
+                        currentJob.stage = 'TRANSPORT';
+                        delete currentJob.arrivedAt;
+                        
+                        document.getElementById('current-job').innerHTML = 
+                            `<strong>Moving ${currentJob.quantity} items</strong><br>
+                             ${locations[currentJob.pickup].name} → ${locations[currentJob.dropoff].name}<br>
+                             <span style="color: #00ff88;">Stage: ${currentJob.stage}</span>`;
+                        
+                        setTimeout(() => {
+                            logMessage('🚚 Pickup complete, moving to dropoff location');
+                            startNavigation(currentJob.dropoff);
+                        }, 1500);
+                    }, 1000);
+                    
+                } else if (currentJob.stage === 'TRANSPORT') {
+                    logMessage(`🔄 Arriving at ${locations[currentJob.dropoff].name} for dropoff...`);
+                    
+                    setTimeout(() => {
+                        logMessage(`📦 Dropping off ${currentJob.quantity} items at ${locations[currentJob.dropoff].name}`);
+                        materialCounts[currentJob.dropoff] += currentJob.quantity;
+                        updateMaterialCounts();
+                        
+                        currentJob.status = 'COMPLETED';
+                        jobsCompleted++;
+                        document.getElementById('jobs-completed').textContent = jobsCompleted;
+                        
+                        logMessage(`✅ Job completed: ${currentJob.quantity} items moved from ${locations[currentJob.pickup].name} to ${locations[currentJob.dropoff].name}`);
+                        
+                        currentJob = null;
+                        document.getElementById('current-job').textContent = 'None';
+                        
+                        setTimeout(() => {
+                            startNextJob();
+                        }, 2000);
+                    }, 1000);
+                }
+            }
+        }
+        
+        function updateJobQueueDisplay() {
+            var queueDiv = document.getElementById('job-queue');
+            queueDiv.innerHTML = '';
+            
+            if (currentJob) {
+                var jobDiv = document.createElement('div');
+                jobDiv.className = 'job-item active';
+                jobDiv.innerHTML = `
+                    <strong>🔥 ACTIVE:</strong> Move ${currentJob.quantity} items<br>
+                    ${locations[currentJob.pickup].name} → ${locations[currentJob.dropoff].name}<br>
+                    Stage: ${currentJob.stage || 'PICKUP'}
+                `;
+                queueDiv.appendChild(jobDiv);
+            }
+            
+            jobQueue.forEach(function(job, index) {
+                var jobDiv = document.createElement('div');
+                jobDiv.className = 'job-item';
+                jobDiv.innerHTML = `
+                    <strong>Job ${index + 1}:</strong> Move ${job.quantity} items<br>
+                    ${locations[job.pickup].name} → ${locations[job.dropoff].name}<br>
+                    <small>Created: ${job.created}</small>
+                `;
+                queueDiv.appendChild(jobDiv);
+            });
+            
+            if (!currentJob && jobQueue.length === 0) {
+                queueDiv.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No jobs in queue</p>';
+            }
+        }
+        
+        // =============================================================================
+        // UTILITY AND MANUAL CONTROL FUNCTIONS
+        // =============================================================================
+        
+        function stopRobot() {
+            if (!cmdVel || !isConnected) return;
+            
+            var twist = new ROSLIB.Message({
+                linear: { x: 0, y: 0, z: 0 },
+                angular: { x: 0, y: 0, z: 0 }
+            });
+            cmdVel.publish(twist);
+            
+            // Reset velocity smoother
+            velocitySmoother.currentLinear = 0;
+            velocitySmoother.currentAngular = 0;
+            robotVelocity.linear = 0;
+            robotVelocity.angular = 0;
+        }
+        
+        function emergencyStop() {
+            stopSystem();
+            stopRobot();
+            logMessage('🛑 EMERGENCY STOP ACTIVATED');
+        }
+        
+        function resetRobot() {
+            stopNavigation();
+            stopRobot();
+            resetPIDState();
+            
+            // Reset velocity smoother
+            velocitySmoother.currentLinear = 0;
+            velocitySmoother.currentAngular = 0;
+            
+            logMessage('🔄 Robot reset completed');
+        }
+        
+        function clearJobs() {
+            if (systemState === 'RUNNING') {
+                if (!confirm('System is running. Stop and clear all jobs?')) {
+                    return;
+                }
+                stopSystem();
+            }
+            
+            jobQueue = [];
+            currentJob = null;
+            document.getElementById('current-job').textContent = 'None';
+            updateJobQueueDisplay();
+            logMessage('🗑️ Job queue cleared');
+        }
+        
+        function returnHome() {
+            if (systemState === 'RUNNING') {
+                pauseSystem();
+            }
+            
+            stopNavigation();
+            logMessage('🏠 Returning to home base...');
+            startNavigation('home');
+        }
+        
+        function manualMove(direction) {
+            if (systemState === 'RUNNING') {
+                logMessage('⚠️ Cannot use manual control while system is running');
+                return;
+            }
+            
+            if (!isConnected) {
+                logMessage('❌ Cannot move - not connected to ROS');
+                return;
+            }
+            
+            var twist = new ROSLIB.Message({
+                linear: { x: 0, y: 0, z: 0 },
+                angular: { x: 0, y: 0, z: 0 }
+            });
+            
+            switch(direction) {
+                case 'forward':
+                    twist.linear.x = 0.3;
+                    break;
+                case 'backward':
+                    twist.linear.x = -0.3;
+                    break;
+                case 'left':
+                    twist.angular.z = 0.5;
+                    break;
+                case 'right':
+                    twist.angular.z = -0.5;
+                    break;
+                case 'stop':
+                    break;
+            }
+            
+            cmdVel.publish(twist);
+            logMessage(`🎮 Manual control: ${direction}`);
+        }
+        
+        function logMessage(message) {
+            var timestamp = new Date().toLocaleTimeString();
+            var logDiv = document.getElementById('system-log');
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Keep log size manageable
+            var lines = logDiv.textContent.split('\n');
+            if (lines.length > 100) {
+                logDiv.textContent = lines.slice(-80).join('\n');
+            }
+            
+            // Log job events for Excel export
+            if (collectingData && (message.includes('Job') || message.includes('Pickup') || message.includes('Dropoff'))) {
+                lastJobEvent = {
+                    timestamp: new Date().toISOString(),
+                    event: message,
+                    time_seconds: (new Date() - dataCollectionStartTime) / 1000
+                };
+            }
+        }
+        
+        // =============================================================================
+        // EXCEL DATA COLLECTION FUNCTIONS
+        // =============================================================================
+        
+        function startDataCollection() {
+            if (collectingData) return;
+            
+            collectingData = true;
+            robotExcelData = [];
+            dataCollectionStartTime = new Date();
+            
+            document.getElementById('collection-status').textContent = 'RECORDING';
+            document.getElementById('collection-status').style.color = '#ff4444';
+            document.getElementById('record-count').textContent = '0';
+            
+            // Update duration timer
+            collectionTimer = setInterval(function() {
+                updateDataCollectionDisplay();
+            }, 1000);
+            
+            logMessage('📊 Excel data collection started');
+        }
+        
+        function stopDataCollection() {
+            collectingData = false;
+            document.getElementById('collection-status').textContent = 'STOPPED';
+            document.getElementById('collection-status').style.color = '#00ff88';
+            
+            if (collectionTimer) {
+                clearInterval(collectionTimer);
+                collectionTimer = null;
+            }
+            
+            logMessage(`📊 Excel data collection stopped - ${robotExcelData.length} records collected`);
+        }
+        
+        function clearDataCollection() {
+            if (collectingData) {
+                stopDataCollection();
+            }
+            
+            robotExcelData = [];
+            document.getElementById('record-count').textContent = '0';
+            document.getElementById('collection-duration').textContent = '00:00';
+            document.getElementById('data-size').textContent = '0 KB';
+            
+            // Clear preview table
+            var tbody = document.getElementById('preview-body');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888; font-style: italic;">No data collected</td></tr>';
+            
+            logMessage('📊 Excel data collection cleared');
+        }
+        
+        function updateDataCollectionDisplay() {
+            if (!dataCollectionStartTime) return;
+            
+            // Update record count
+            document.getElementById('record-count').textContent = robotExcelData.length;
+            
+            // Update duration
+            var elapsed = new Date() - dataCollectionStartTime;
+            var minutes = Math.floor(elapsed / 60000);
+            var seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('collection-duration').textContent = 
+                minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+            
+            // Estimate data size
+            var estimatedSize = robotExcelData.length * 200; // Rough estimate of bytes per record
+            var sizeKB = (estimatedSize / 1024).toFixed(1);
+            document.getElementById('data-size').textContent = sizeKB + ' KB';
+        }
+        
+        function updateDataPreview() {
+            var tbody = document.getElementById('preview-body');
+            
+            if (robotExcelData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888; font-style: italic;">No data collected</td></tr>';
+                return;
+            }
+            
+            // Show last 8 records
+            var recentData = robotExcelData.slice(-8);
+            
+            tbody.innerHTML = '';
+            recentData.forEach(function(record) {
+                var row = tbody.insertRow();
+                row.insertCell(0).textContent = record.time_seconds.toFixed(1) + 's';
+                row.insertCell(1).textContent = record.x_position.toFixed(2);
+                row.insertCell(2).textContent = record.y_position.toFixed(2);
+                row.insertCell(3).textContent = record.velocity.toFixed(2);
+            });
+        }
+        
+        function exportToExcel() {
+            if (robotExcelData.length === 0) {
+                alert('No data to export. Start data collection first.');
+                return;
+            }
+            
+            // Prepare main data for Excel export
+            var excelData = robotExcelData.map(function(record) {
+                return {
+                    'Timestamp': record.timestamp,
+                    'Time_Seconds': record.time_seconds,
+                    'Excel_Date': record.excel_timestamp,
+                    'X_Position_m': record.x_position,
+                    'Y_Position_m': record.y_position,
+                    'Velocity_ms': record.velocity,
+                    'Heading_deg': record.heading_deg,
+                    'Control_Mode': record.control_mode,
+                    'System_State': record.system_state,
+                    'Current_Job': record.current_job,
+                    'Job_Stage': record.job_stage,
+                    'Distance_Error_m': record.distance_error,
+                    'Heading_Error_deg': record.heading_error,
+                    'Linear_Vel_Cmd_ms': record.linear_velocity_cmd,
+                    'Angular_Vel_Cmd_rads': record.angular_velocity_cmd
+                };
+            });
+            
+            // Create workbook
+            var workbook = XLSX.utils.book_new();
+            
+            // Main data sheet
+            var worksheet = XLSX.utils.json_to_sheet(excelData);
+            
+            // Set column widths
+            worksheet['!cols'] = [
+                { width: 22 },  // Timestamp
+                { width: 12 },  // Time Seconds
+                { width: 15 },  // Excel Date
+                { width: 12 },  // X Position
+                { width: 12 },  // Y Position
+                { width: 12 },  // Velocity
+                { width: 12 },  // Heading
+                { width: 15 },  // Control Mode
+                { width: 15 },  // System State
+                { width: 20 },  // Current Job
+                { width: 12 },  // Job Stage
+                { width: 15 },  // Distance Error
+                { width: 15 },  // Heading Error
+                { width: 15 },  // Linear Vel Cmd
+                { width: 15 }   // Angular Vel Cmd
+            ];
+            
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Robot_Data');
+            
+            // Create summary statistics sheet
+            var stats = calculateExcelStatistics(robotExcelData);
+            var statsSheet = XLSX.utils.json_to_sheet([stats]);
+            XLSX.utils.book_append_sheet(workbook, statsSheet, 'Statistics');
+            
+            // Create control performance analysis sheet
+            var controlAnalysis = analyzeControlPerformance(robotExcelData);
+            if (controlAnalysis.length > 0) {
+                var controlSheet = XLSX.utils.json_to_sheet(controlAnalysis);
+                XLSX.utils.book_append_sheet(workbook, controlSheet, 'Control_Analysis');
+            }
+            
+            // Create job timeline sheet
+            var jobEvents = extractJobEvents(robotExcelData);
+            if (jobEvents.length > 0) {
+                var jobSheet = XLSX.utils.json_to_sheet(jobEvents);
+                XLSX.utils.book_append_sheet(workbook, jobSheet, 'Job_Timeline');
+            }
+            
+            // Create analysis template sheet
+            var analysisTemplate = [
+                { Formula: '=AVERAGE(Robot_Data.E:E)', Description: 'Average Velocity (m/s)', Category: 'Velocity Analysis' },
+                { Formula: '=MAX(Robot_Data.E:E)', Description: 'Maximum Velocity (m/s)', Category: 'Velocity Analysis' },
+                { Formula: '=STDEV(Robot_Data.E:E)', Description: 'Velocity Std Dev (m/s)', Category: 'Velocity Analysis' },
+                { Formula: '=AVERAGE(Robot_Data.L:L)', Description: 'Average Distance Error (m)', Category: 'Control Performance' },
+                { Formula: '=MAX(Robot_Data.L:L)', Description: 'Maximum Distance Error (m)', Category: 'Control Performance' },
+                { Formula: '=AVERAGE(ABS(Robot_Data.M:M))', Description: 'Average Heading Error (deg)', Category: 'Control Performance' },
+                { Formula: '=COUNT(Robot_Data.A:A)', Description: 'Total Data Points', Category: 'General Statistics' },
+                { Formula: '=MAX(Robot_Data.B:B)', Description: 'Total Collection Time (s)', Category: 'General Statistics' }
+            ];
+            var templateSheet = XLSX.utils.json_to_sheet(analysisTemplate);
+            XLSX.utils.book_append_sheet(workbook, templateSheet, 'Excel_Formulas');
+            
+            // Save file
+            var filename = `robot_material_handling_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            
+            logMessage(`📊 Excel file exported: ${filename} (${robotExcelData.length} records)`);
+            alert(`Excel file exported successfully!\n\nFile: ${filename}\nRecords: ${robotExcelData.length}\nSheets: Robot Data, Statistics, Control Analysis, Job Timeline, Excel Formulas`);
+        }
+        
+        function calculateExcelStatistics(data) {
+            if (data.length === 0) return {};
+            
+            var velocities = data.map(d => d.velocity);
+            var xPositions = data.map(d => d.x_position);
+            var yPositions = data.map(d => d.y_position);
+            var distanceErrors = data.map(d => d.distance_error).filter(d => d > 0);
+            var headingErrors = data.map(d => Math.abs(d.heading_error)).filter(d => !isNaN(d));
+            
+            // Calculate total distance traveled
+            var totalDistance = 0;
+            for (var i = 1; i < data.length; i++) {
+                var dx = data[i].x_position - data[i-1].x_position;
+                var dy = data[i].y_position - data[i-1].y_position;
+                totalDistance += Math.sqrt(dx*dx + dy*dy);
+            }
+            
+            // Count job changes
+            var jobChanges = 0;
+            var lastJobStage = data[0].job_stage;
+            for (var i = 1; i < data.length; i++) {
+                if (data[i].job_stage !== lastJobStage) {
+                    jobChanges++;
+                    lastJobStage = data[i].job_stage;
+                }
+            }
+            
+            // Control mode usage
+            var controlModeUsage = {};
+            data.forEach(d => {
+                controlModeUsage[d.control_mode] = (controlModeUsage[d.control_mode] || 0) + 1;
+            });
+            
+            return {
+                'Collection_Start': data[0].timestamp,
+                'Collection_End': data[data.length-1].timestamp,
+                'Total_Data_Points': data.length,
+                'Collection_Duration_s': data[data.length-1].time_seconds,
+                'Total_Distance_m': totalDistance.toFixed(3),
+                'Average_Velocity_ms': (velocities.reduce((a,b) => a+b, 0) / velocities.length).toFixed(3),
+                'Max_Velocity_ms': Math.max(...velocities).toFixed(3),
+                'Min_Velocity_ms': Math.min(...velocities).toFixed(3),
+                'Velocity_StdDev_ms': calculateStandardDeviation(velocities).toFixed(3),
+                'Average_Distance_Error_m': distanceErrors.length > 0 ? (distanceErrors.reduce((a,b) => a+b, 0) / distanceErrors.length).toFixed(3) : 'N/A',
+                'Max_Distance_Error_m': distanceErrors.length > 0 ? Math.max(...distanceErrors).toFixed(3) : 'N/A',
+                'Average_Heading_Error_deg': headingErrors.length > 0 ? (headingErrors.reduce((a,b) => a+b, 0) / headingErrors.length).toFixed(2) : 'N/A',
+                'Max_X_Position_m': Math.max(...xPositions).toFixed(3),
+                'Min_X_Position_m': Math.min(...xPositions).toFixed(3),
+                'Max_Y_Position_m': Math.max(...yPositions).toFixed(3),
+                'Min_Y_Position_m': Math.min(...yPositions).toFixed(3),
+                'Job_Stage_Changes': jobChanges,
+                'Primary_Control_Mode': Object.keys(controlModeUsage).reduce((a, b) => controlModeUsage[a] > controlModeUsage[b] ? a : b)
+            };
+        }
+        
+        function analyzeControlPerformance(data) {
+            var controlModes = [...new Set(data.map(d => d.control_mode))];
+            var analysis = [];
+            
+            controlModes.forEach(mode => {
+                var modeData = data.filter(d => d.control_mode === mode);
+                if (modeData.length < 10) return; // Skip if too few samples
+                
+                var velocities = modeData.map(d => d.velocity);
+                var distanceErrors = modeData.map(d => d.distance_error).filter(d => d > 0);
+                var headingErrors = modeData.map(d => Math.abs(d.heading_error)).filter(d => !isNaN(d));
+                
+                analysis.push({
+                    'Control_Mode': mode,
+                    'Sample_Count': modeData.length,
+                    'Duration_Seconds': modeData[modeData.length-1].time_seconds - modeData[0].time_seconds,
+                    'Average_Velocity': velocities.length > 0 ? (velocities.reduce((a,b) => a+b, 0) / velocities.length).toFixed(3) : 'N/A',
+                    'Average_Distance_Error': distanceErrors.length > 0 ? (distanceErrors.reduce((a,b) => a+b, 0) / distanceErrors.length).toFixed(3) : 'N/A',
+                    'Average_Heading_Error': headingErrors.length > 0 ? (headingErrors.reduce((a,b) => a+b, 0) / headingErrors.length).toFixed(2) : 'N/A',
+                    'Velocity_StdDev': velocities.length > 0 ? calculateStandardDeviation(velocities).toFixed(3) : 'N/A'
+                });
+            });
+            
+            return analysis;
+        }
+        
+        function extractJobEvents(data) {
+            var events = [];
+            var lastJobStage = '';
+            var lastJob = '';
+            
+            data.forEach(record => {
+                if (record.job_stage !== lastJobStage || record.current_job !== lastJob) {
+                    events.push({
+                        'Time_Seconds': record.time_seconds,
+                        'Timestamp': record.timestamp,
+                        'Event_Type': 'Job State Change',
+                        'Job': record.current_job,
+                        'Stage': record.job_stage,
+                        'Robot_Position': `(${record.x_position.toFixed(2)}, ${record.y_position.toFixed(2)})`,
+                        'Control_Mode': record.control_mode
+                    });
+                    lastJobStage = record.job_stage;
+                    lastJob = record.current_job;
+                }
+            });
+            
+            return events;
+        }
+        
+        function calculateStandardDeviation(values) {
+            if (values.length === 0) return 0;
+            var avg = values.reduce((a,b) => a+b, 0) / values.length;
+            var squareDiffs = values.map(value => Math.pow(value - avg, 2));
+            var avgSquareDiff = squareDiffs.reduce((a,b) => a+b, 0) / squareDiffs.length;
+            return Math.sqrt(avgSquareDiff);
+        }
+        
+        // =============================================================================
+        // INITIALIZATION
+        // =============================================================================
+        
+        // Initialize display
+        window.addEventListener('load', function() {
+            updateMaterialCounts();
+            updateJobQueueDisplay();
+            updateParameterDisplay();
+            logMessage('🚀 Advanced Material Handling System initialized');
+            logMessage('📡 Connecting to ROS Bridge...');
+        });
+        
+        // Update performance display every 500ms
+        setInterval(() => {
+            updatePerformanceDisplay();
+        }, 500);
     </script>
 </body>
 </html>

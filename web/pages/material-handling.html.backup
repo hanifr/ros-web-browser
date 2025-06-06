@@ -451,7 +451,7 @@
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     
     <!-- Platform JavaScript Files -->
-    <script src="../js/platform-core.js"></script>
+    <script src="../js/platform-material-handling.js"></script>
     <script src="../js/ros-bridge.js"></script>
     <script src="../js/control-algorithms.js"></script>
     <script src="../js/job-manager.js"></script>
