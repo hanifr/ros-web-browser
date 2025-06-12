@@ -1,0 +1,73 @@
+version: '3.8'
+
+networks:
+  robot_web:
+    driver: bridge
+
+services:
+  # ROS 2 Backend with Full SLAM and Navigation
+  ros2-full-slam:
+    build:
+      context: .
+      dockerfile: Dockerfile.web-bridge
+    container_name: ros2-full-slam
+    environment:
+      - ROS_DOMAIN_ID=42
+    networks:
+      - robot_web
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./robots:/opt/robots
+      - ./config:/opt/config
+      - ./launch:/opt/launch
+      - ./maps:/opt/maps
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        
+        # Create necessary directories
+        mkdir -p /opt/maps &&
+        
+        # Start the enhanced virtual robot
+        echo 'Starting enhanced virtual robot...' &&
+        cd /opt/robots &&
+        python3 enhanced_virtual_robot.py &
+        
+        # Wait for robot to initialize
+        sleep 5 &&
+        
+        # Start SLAM with your config
+        echo 'Starting SLAM with your configuration...' &&
+        cd /opt/launch &&
+        ros2 launch slam_bringup.launch.py slam_params_file:=/opt/config/slam_toolbox_params.yaml &
+        
+        # Wait for SLAM to initialize
+        sleep 5 &&
+        
+        # Start Navigation with your config
+        echo 'Starting Navigation with your configuration...' &&
+        ros2 launch navigation_bringup.launch.py nav_params_file:=/opt/config/nav2_params.yaml &
+        
+        # Wait for navigation to initialize
+        sleep 8 &&
+        
+        # Start rosbridge
+        echo 'Starting ROS Bridge...' &&
+        ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090
+      "
+    restart: unless-stopped
+
+  # Web Interface
+  web-interface:
+    image: nginx:alpine
+    container_name: robot-web-ui
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html
+    depends_on:
+      - ros2-full-slam
+    networks:
+      - robot_web
+    restart: unless-stopped

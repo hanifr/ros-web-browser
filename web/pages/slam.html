@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboTech SLAM Control Suite</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #00d4ff;
+            --secondary-color: #ff6b35;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --border-color: #333;
+            --success-color: #00ff88;
+            --warning-color: #ffaa00;
+            --danger-color: #ff4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            color: var(--text-light);
+            overflow: hidden;
+        }
+
+        #main-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Control Panel Styles */
+        #control-panel {
+            width: 350px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .panel-section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .panel-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Navigation Mode Selector */
+        .nav-mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            border-color: var(--primary-color);
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Movement Controls */
+        .movement-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .control-btn {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .control-btn.stop-btn {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .btn-icon {
+            font-size: 20px;
+        }
+
+        /* SLAM Controls */
+        .slam-controls {
+            display: grid;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: var(--primary-color);
+            color: var(--bg-dark);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .action-btn.danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .action-btn.success {
+            background: var(--success-color);
+            color: var(--bg-dark);
+        }
+
+        /* Goal Setting */
+        .goal-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .goal-input input {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            border-radius: 4px;
+        }
+
+        /* Map and Visualization */
+        #visualization-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #three-container {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(45deg, #001122 0%, #002244 100%);
+        }
+
+        /* Map Overlay */
+        #map-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        #map-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            background: #000;
+        }
+
+        /* Status Panel */
+        #status-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 300px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+        }
+
+        .status-value {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Navigation Path */
+        .path-visualization {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Click-to-navigate indicator */
+        .nav-cursor {
+            cursor: crosshair;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #control-panel {
+                width: 100%;
+                height: 40vh;
+            }
+            
+            #visualization-area {
+                height: 60vh;
+            }
+            
+            #main-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <!-- Control Panel -->
+        <div id="control-panel">
+            <!-- Connection Status -->
+            <div class="connection-status">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="connection-status">Connecting to ROS...</span>
+            </div>
+
+            <!-- Navigation Mode -->
+            <div class="panel-section">
+                <h3><i class="fas fa-route"></i> Navigation Mode</h3>
+                <div class="nav-mode-selector">
+                    <button class="mode-btn active" id="manual-mode">
+                        <i class="fas fa-gamepad"></i><br>Manual
+                    </button>
+                    <button class="mode-btn" id="auto-mode">
+                        <i class="fas fa-robot"></i><br>Autonomous
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual Controls -->
+            <div class="panel-section" id="manual-controls">
+                <h3><i class="fas fa-gamepad"></i> Manual Control</h3>
+                <div class="movement-controls">
+                    <div></div>
+                    <button class="control-btn" id="forward" onmousedown="startMove(1, 0)" onmouseup="stopMove()">
+                        <span class="btn-icon">↑</span>
+                        <span class="btn-label">Forward</span>
+                    </button>
+                    <div></div>
+                    
+                    <button class="control-btn" id="left" onmousedown="startMove(0, 0.5)" onmouseup="stopMove()">
+                        <span class="btn-icon">←</span>
+                        <span class="btn-label">Left</span>
+                    </button>
+                    <button class="control-btn stop-btn" id="stop" onclick="stopMove()">
+                        <span class="btn-icon">⏹</span>
+                        <span class="btn-label">Stop</span>
+                    </button>
+                    <button class="control-btn" id="right" onmousedown="startMove(0, -0.5)" onmouseup="stopMove()">
+                        <span class="btn-icon">→</span>
+                        <span class="btn-label">Right</span>
+                    </button>
+                    
+                    <div></div>
+                    <button class="control-btn" id="backward" onmousedown="startMove(-1, 0)" onmouseup="stopMove()">
+                        <span class="btn-icon">↓</span>
+                        <span class="btn-label">Backward</span>
+                    </button>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- SLAM Controls -->
+            <div class="panel-section">
+                <h3><i class="fas fa-map"></i> SLAM Control</h3>
+                <div class="slam-controls">
+                    <button class="action-btn" id="start-mapping" onclick="startMapping()">
+                        <i class="fas fa-play"></i> Start Mapping
+                    </button>
+                    <button class="action-btn" id="save-map" onclick="saveMap()">
+                        <i class="fas fa-save"></i> Save Map
+                    </button>
+                    <button class="action-btn" id="load-map" onclick="loadMap()">
+                        <i class="fas fa-folder-open"></i> Load Map
+                    </button>
+                </div>
+            </div>
+
+            <!-- Goal Setting -->
+            <div class="panel-section" id="goal-controls" style="display: none;">
+                <h3><i class="fas fa-crosshairs"></i> Goal Setting</h3>
+                <div class="goal-input">
+                    <input type="number" id="goal-x" placeholder="X (m)" step="0.1">
+                    <input type="number" id="goal-y" placeholder="Y (m)" step="0.1">
+                </div>
+                <button class="action-btn success" onclick="setGoal()">
+                    <i class="fas fa-flag"></i> Set Goal
+                </button>
+                <button class="action-btn danger" onclick="cancelGoal()">
+                    <i class="fas fa-times"></i> Cancel Goal
+                </button>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    💡 Click on the 3D view to set navigation goals
+                </div>
+            </div>
+
+            <!-- Robot Status -->
+            <div class="panel-section">
+                <h3><i class="fas fa-info-circle"></i> Robot Status</h3>
+                <div class="status-item">
+                    <span class="status-label">Position:</span>
+                    <span class="status-value" id="robot-position">x: 0.00, y: 0.00</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Orientation:</span>
+                    <span class="status-value" id="robot-orientation">0.0°</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Navigation:</span>
+                    <span class="status-value" id="nav-status">Idle</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Mapping:</span>
+                    <span class="status-value" id="mapping-status">Stopped</span>
+                </div>
+            </div>
+
+            <!-- Emergency Controls -->
+            <div class="panel-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> Emergency</h3>
+                <button class="action-btn danger" onclick="emergencyStop()">
+                    <i class="fas fa-stop"></i> Emergency Stop
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualization Area -->
+        <div id="visualization-area">
+            <div id="three-container"></div>
+            
+            <!-- Map Overlay -->
+            <div id="map-container">
+                <canvas id="map-canvas" width="280" height="280"></canvas>
+                <div style="text-align: center; color: var(--primary-color); font-size: 12px; margin-top: 5px;">
+                    Real-time SLAM Map
+                </div>
+            </div>
+
+            <!-- Status Panel -->
+            <div id="status-panel">
+                <div class="status-item">
+                    <span class="status-label">Distance Traveled:</span>
+                    <span class="status-value" id="distance-traveled">0.00 m</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Map Coverage:</span>
+                    <span class="status-value" id="map-coverage">0%</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Goal Distance:</span>
+                    <span class="status-value" id="goal-distance">-- m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+
+    <script>
+        class SLAMRobotController {
+            constructor() {
+                this.ros = null;
+                this.cmdVelTopic = null;
+                this.goalTopic = null;
+                this.mapTopic = null;
+                this.odometryTopic = null;
+                this.laserTopic = null;
+                this.moveBaseActionClient = null;
+                
+                this.currentMode = 'manual';
+                this.isMapping = false;
+                this.robotPose = { x: 0, y: 0, theta: 0 };
+                this.currentGoal = null;
+                this.mapData = null;
+                this.mapMetadata = null;
+                this.laserData = null;
+                
+                // Services for SLAM control
+                this.saveMapService = null;
+                this.loadMapService = null;
+                
+                // Statistics
+                this.distanceTraveled = 0;
+                this.lastPose = { x: 0, y: 0 };
+                this.startTime = Date.now();
+                
+                this.initROS();
+                this.initThreeJS();
+                this.setupEventListeners();
+                this.startStatisticsUpdate();
+            }
+
+            initROS() {
+                // Connect to ROS
+                this.ros = new ROSLIB.Ros({
+                    url: 'ws://localhost:9090'
+                });
+
+                this.ros.on('connection', () => {
+                    console.log('Connected to ROS!');
+                    document.getElementById('connection-status').textContent = 'Connected to ROS';
+                    document.getElementById('status-dot').classList.add('connected');
+                    this.setupROSTopics();
+                });
+
+                this.ros.on('error', (error) => {
+                    console.log('ROS connection error:', error);
+                    document.getElementById('connection-status').textContent = 'Connection Error';
+                });
+
+                this.ros.on('close', () => {
+                    console.log('ROS connection closed');
+                    document.getElementById('connection-status').textContent = 'Disconnected';
+                    document.getElementById('status-dot').classList.remove('connected');
+                });
+            }
+
+            setupROSTopics() {
+                // Command velocity publisher
+                this.cmdVelTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/cmd_vel',
+                    messageType: 'geometry_msgs/Twist'
+                });
+
+                // Navigation goal publisher (Nav2 style)
+                this.goalTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/goal_pose',
+                    messageType: 'geometry_msgs/PoseStamped'
+                });
+
+                // Alternative navigation goal for simple navigation
+                this.simpleGoalTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/move_base_simple/goal',
+                    messageType: 'geometry_msgs/PoseStamped'
+                });
+
+                // Map subscriber
+                this.mapTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/map',
+                    messageType: 'nav_msgs/OccupancyGrid'
+                });
+
+                this.mapTopic.subscribe((message) => {
+                    this.updateMap(message);
+                });
+
+                // Odometry subscriber
+                this.odometryTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/odom',
+                    messageType: 'nav_msgs/Odometry'
+                });
+
+                this.odometryTopic.subscribe((message) => {
+                    this.updateRobotPose(message);
+                });
+
+                // Laser scan subscriber
+                this.laserTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/scan',
+                    messageType: 'sensor_msgs/LaserScan'
+                });
+
+                this.laserTopic.subscribe((message) => {
+                    this.updateLaserData(message);
+                });
+
+                // Move base action client (Nav2)
+                this.moveBaseActionClient = new ROSLIB.ActionClient({
+                    ros: this.ros,
+                    serverName: '/navigate_to_pose',
+                    actionName: 'nav2_msgs/NavigateToPose'
+                });
+
+                // Services for map operations
+                this.saveMapService = new ROSLIB.Service({
+                    ros: this.ros,
+                    name: '/slam_toolbox/save_map',
+                    serviceType: 'slam_toolbox/SaveMap'
+                });
+
+                // Set up map subscriber with proper handling
+                this.mapTopic.subscribe((message) => {
+                    this.updateMap(message);
+                    this.updateMapCoverage();
+                });
+
+                // Navigation status subscriber
+                this.navStatusTopic = new ROSLIB.Topic({
+                    ros: this.ros,
+                    name: '/navigate_to_pose/_action/status',
+                    messageType: 'action_msgs/GoalStatusArray'
+                });
+
+                this.navStatusTopic.subscribe((message) => {
+                    this.updateNavigationStatus(message);
+                });
+            }
+
+            initThreeJS() {
+                // Initialize Three.js scene
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                
+                const container = document.getElementById('three-container');
+                this.renderer.setSize(container.offsetWidth, container.offsetHeight);
+                this.renderer.setClearColor(0x001122);
+                container.appendChild(this.renderer.domElement);
+
+                // Add lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                this.scene.add(directionalLight);
+
+                // Create robot representation
+                this.createRobot();
+                
+                // Add grid
+                const gridHelper = new THREE.GridHelper(20, 20, 0x00d4ff, 0x333333);
+                this.scene.add(gridHelper);
+
+                // Position camera
+                this.camera.position.set(5, 5, 5);
+                this.camera.lookAt(0, 0, 0);
+
+                // Add orbit controls (if available)
+                this.setupCameraControls();
+                
+                // Add click handler for goal setting
+                this.renderer.domElement.addEventListener('click', (event) => {
+                    if (this.currentMode === 'auto') {
+                        this.handleGoalClick(event);
+                    }
+                });
+
+                // Start render loop
+                this.animate();
+            }
+
+            createRobot() {
+                // Create robot geometry
+                const robotGroup = new THREE.Group();
+                
+                // Main body
+                const bodyGeometry = new THREE.BoxGeometry(0.5, 0.2, 0.3);
+                const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x00d4ff });
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                robotGroup.add(body);
+
+                // Direction indicator
+                const arrowGeometry = new THREE.ConeGeometry(0.05, 0.2, 8);
+                const arrowMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b35 });
+                const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
+                arrow.position.set(0.3, 0, 0);
+                arrow.rotation.z = -Math.PI / 2;
+                robotGroup.add(arrow);
+
+                this.robotMesh = robotGroup;
+                this.scene.add(robotGroup);
+
+                // Path visualization
+                this.pathPoints = [];
+                this.pathGeometry = new THREE.BufferGeometry();
+                this.pathMaterial = new THREE.LineBasicMaterial({ color: 0x00ff88 });
+                this.pathLine = new THREE.Line(this.pathGeometry, this.pathMaterial);
+                this.scene.add(this.pathLine);
+            }
+
+            setupCameraControls() {
+                // Simple camera controls with mouse
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+                const container = this.renderer.domElement;
+
+                container.addEventListener('mousedown', (event) => {
+                    if (this.currentMode === 'manual') {
+                        isDragging = true;
+                        previousMousePosition = { x: event.clientX, y: event.clientY };
+                    }
+                });
+
+                container.addEventListener('mousemove', (event) => {
+                    if (isDragging && this.currentMode === 'manual') {
+                        const deltaX = event.clientX - previousMousePosition.x;
+                        const deltaY = event.clientY - previousMousePosition.y;
+                        
+                        // Rotate camera around robot
+                        const spherical = new THREE.Spherical();
+                        spherical.setFromVector3(this.camera.position);
+                        spherical.theta -= deltaX * 0.01;
+                        spherical.phi += deltaY * 0.01;
+                        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                        
+                        this.camera.position.setFromSpherical(spherical);
+                        this.camera.lookAt(0, 0, 0);
+                        
+                        previousMousePosition = { x: event.clientX, y: event.clientY };
+                    }
+                });
+
+                container.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                container.addEventListener('wheel', (event) => {
+                    const distance = this.camera.position.length();
+                    const newDistance = Math.max(2, Math.min(20, distance + event.deltaY * 0.01));
+                    this.camera.position.multiplyScalar(newDistance / distance);
+                });
+            }
+
+            setupEventListeners() {
+                // Mode switching
+                document.getElementById('manual-mode').addEventListener('click', () => {
+                    this.switchMode('manual');
+                });
+
+                document.getElementById('auto-mode').addEventListener('click', () => {
+                    this.switchMode('auto');
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    const container = document.getElementById('three-container');
+                    this.camera.aspect = container.offsetWidth / container.offsetHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(container.offsetWidth, container.offsetHeight);
+                });
+            }
+
+            switchMode(mode) {
+                this.currentMode = mode;
+                
+                // Update UI
+                document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`${mode}-mode`).classList.add('active');
+                
+                // Show/hide controls
+                const manualControls = document.getElementById('manual-controls');
+                const goalControls = document.getElementById('goal-controls');
+                
+                if (mode === 'manual') {
+                    manualControls.style.display = 'block';
+                    goalControls.style.display = 'none';
+                    this.renderer.domElement.classList.remove('nav-cursor');
+                    this.cancelGoal();
+                } else {
+                    manualControls.style.display = 'none';
+                    goalControls.style.display = 'block';
+                    this.renderer.domElement.classList.add('nav-cursor');
+                }
+            }
+
+            handleGoalClick(event) {
+                // Convert mouse click to 3D world coordinates
+                const rect = this.renderer.domElement.getBoundingClientRect();
+                const mouse = new THREE.Vector2();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, this.camera);
+
+                // Create a ground plane for intersection
+                const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+                const intersectionPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(groundPlane, intersectionPoint);
+
+                if (intersectionPoint) {
+                    this.setGoalPosition(intersectionPoint.x, intersectionPoint.z);
+                }
+            }
+
+            setGoalPosition(x, y) {
+                document.getElementById('goal-x').value = x.toFixed(2);
+                document.getElementById('goal-y').value = y.toFixed(2);
+                this.setGoal();
+            }
+
+            updateRobotPose(odometry) {
+                const pose = odometry.pose.pose;
+                this.robotPose.x = pose.position.x;
+                this.robotPose.y = pose.position.y;
+                
+                // Convert quaternion to euler angle
+                const quat = pose.orientation;
+                this.robotPose.theta = Math.atan2(
+                    2 * (quat.w * quat.z + quat.x * quat.y),
+                    1 - 2 * (quat.y * quat.y + quat.z * quat.z)
+                );
+
+                // Update robot position in 3D scene
+                if (this.robotMesh) {
+                    this.robotMesh.position.set(this.robotPose.x, 0, this.robotPose.y);
+                    this.robotMesh.rotation.y = this.robotPose.theta;
+                }
+
+                // Update UI
+                document.getElementById('robot-position').textContent = 
+                    `x: ${this.robotPose.x.toFixed(2)}, y: ${this.robotPose.y.toFixed(2)}`;
+                document.getElementById('robot-orientation').textContent = 
+                    `${(this.robotPose.theta * 180 / Math.PI).toFixed(1)}°`;
+            }
+
+            updateMap(mapMsg) {
+                this.mapData = mapMsg;
+                this.renderMap();
+            }
+
+            renderMap() {
+                const canvas = document.getElementById('map-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                if (!this.mapData) return;
+
+                const { width, height, data } = this.mapData.info;
+                const resolution = this.mapData.info.resolution;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Scale to fit canvas
+                const scaleX = canvas.width / width;
+                const scaleY = canvas.height / height;
+                const scale = Math.min(scaleX, scaleY);
+                
+                // Draw map
+                const imageData = ctx.createImageData(width * scale, height * scale);
+                
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const mapIndex = y * width + x;
+                        const value = this.mapData.data[mapIndex];
+                        
+                        let color = [128, 128, 128]; // Unknown (gray)
+                        if (value === 0) color = [255, 255, 255]; // Free (white)
+                        else if (value === 100) color = [0, 0, 0]; // Occupied (black)
+                        
+                        // Scale up the pixel
+                        for (let sy = 0; sy < scale; sy++) {
+                            for (let sx = 0; sx < scale; sx++) {
+                                const pixelIndex = ((y * scale + sy) * width * scale + (x * scale + sx)) * 4;
+                                imageData.data[pixelIndex] = color[0];     // R
+                                imageData.data[pixelIndex + 1] = color[1]; // G
+                                imageData.data[pixelIndex + 2] = color[2]; // B
+                                imageData.data[pixelIndex + 3] = 255;      // A
+                            }
+                        }
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+                
+                // Draw robot position
+                if (this.robotPose) {
+                    const robotX = (this.robotPose.x / resolution + width / 2) * scale;
+                    const robotY = (height / 2 - this.robotPose.y / resolution) * scale;
+                    
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.beginPath();
+                    ctx.arc(robotX, robotY, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+
+            updateNavigationStatus(statusArray) {
+                if (statusArray.status_list.length > 0) {
+                    const latestStatus = statusArray.status_list[statusArray.status_list.length - 1];
+                    const statusText = this.getStatusText(latestStatus.status);
+                    document.getElementById('nav-status').textContent = statusText;
+                }
+            }
+
+            getStatusText(status) {
+                const statusMap = {
+                    0: 'Pending',
+                    1: 'Active',
+                    2: 'Preempted',
+                    3: 'Succeeded',
+                    4: 'Aborted',
+                    5: 'Rejected',
+                    6: 'Preempting',
+                    7: 'Recalling',
+                    8: 'Recalled',
+                    9: 'Lost'
+                };
+                return statusMap[status] || 'Unknown';
+            }
+
+            updateMapCoverage() {
+                if (!this.mapData) return;
+                
+                const totalCells = this.mapData.info.width * this.mapData.info.height;
+                const knownCells = this.mapData.data.filter(cell => cell !== -1).length;
+                const coverage = ((knownCells / totalCells) * 100).toFixed(1);
+                
+                document.getElementById('map-coverage').textContent = `${coverage}%`;
+            }
+
+            startStatisticsUpdate() {
+                setInterval(() => {
+                    this.updateStatistics();
+                }, 1000);
+            }
+
+            updateLaserData(laserMsg) {
+                // Store laser data for visualization
+                this.laserData = laserMsg;
+                console.log('Laser data received:', laserMsg.ranges.length, 'points');
+                
+                // You can add laser visualization here later
+                // For now, just store the data
+            }
+
+            updateStatistics() {
+                // Update distance traveled
+                if (this.lastPose.x !== 0 || this.lastPose.y !== 0) {
+                    const dx = this.robotPose.x - this.lastPose.x;
+                    const dy = this.robotPose.y - this.lastPose.y;
+                    this.distanceTraveled += Math.sqrt(dx * dx + dy * dy);
+                }
+                this.lastPose = { x: this.robotPose.x, y: this.robotPose.y };
+                
+                document.getElementById('distance-traveled').textContent = 
+                    `${this.distanceTraveled.toFixed(2)} m`;
+                
+                // Update goal distance
+                if (this.currentGoal) {
+                    const dx = this.currentGoal.x - this.robotPose.x;
+                    const dy = this.currentGoal.y - this.robotPose.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    document.getElementById('goal-distance').textContent = `${distance.toFixed(2)} m`;
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            // Robot movement functions
+            publishVelocity(linear, angular) {
+                if (!this.cmdVelTopic) return;
+                
+                const twist = new ROSLIB.Message({
+                    linear: { x: linear, y: 0, z: 0 },
+                    angular: { x: 0, y: 0, z: angular }
+                });
+                
+                this.cmdVelTopic.publish(twist);
+            }
+        }
+
+        // Global movement functions
+        let moveInterval = null;
+        let robotController = null;
+
+        function startMove(linear, angular) {
+            if (robotController && robotController.currentMode === 'manual') {
+                robotController.publishVelocity(linear, angular);
+                moveInterval = setInterval(() => {
+                    robotController.publishVelocity(linear, angular);
+                }, 100);
+            }
+        }
+
+        function stopMove() {
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+            if (robotController) {
+                robotController.publishVelocity(0, 0);
+            }
+        }
+
+        function startMapping() {
+            console.log('Starting SLAM mapping...');
+            document.getElementById('mapping-status').textContent = 'Active';
+            robotController.isMapping = true;
+            
+            // In this implementation, SLAM is always running
+            // This function could trigger specific mapping behaviors
+            alert('SLAM mapping is now active. Drive the robot to explore the environment!');
+        }
+
+        function saveMap() {
+            if (!robotController || !robotController.ros) {
+                alert('Not connected to ROS!');
+                return;
+            }
+
+            console.log('Saving current map...');
+            
+            // Create service request for slam_toolbox
+            const request = new ROSLIB.ServiceRequest({
+                name: new ROSLIB.Message({
+                    data: '/opt/maps/saved_map'
+                })
+            });
+            
+            if (robotController.saveMapService) {
+                robotController.saveMapService.callService(request, 
+                    (result) => {
+                        console.log('Map saved successfully:', result);
+                        alert('Map saved successfully to /opt/maps/saved_map!');
+                    },
+                    (error) => {
+                        console.error('Failed to save map:', error);
+                        alert('Failed to save map. Check console for details.');
+                    }
+                );
+            } else {
+                // Fallback method using std_srvs
+                const mapSaverService = new ROSLIB.Service({
+                    ros: robotController.ros,
+                    name: '/map_saver/save_map',
+                    serviceType: 'nav2_msgs/SaveMap'
+                });
+                
+                const fallbackRequest = new ROSLIB.ServiceRequest({
+                    map_topic: '/map',
+                    map_url: '/opt/maps/saved_map',
+                    image_format: 'pgm',
+                    map_mode: 'trinary',
+                    free_thresh: 0.25,
+                    occupied_thresh: 0.65
+                });
+                
+                mapSaverService.callService(fallbackRequest,
+                    (result) => {
+                        console.log('Map saved via fallback method');
+                        alert('Map saved successfully!');
+                    },
+                    (error) => {
+                        console.error('Fallback save also failed:', error);
+                        alert('Could not save map. Make sure SLAM is running.');
+                    }
+                );
+            }
+        }
+
+        function loadMap() {
+            console.log('Loading saved map...');
+            
+            // This would typically involve loading a pre-saved map
+            // For now, we'll just inform the user
+            alert('Map loading functionality would load a previously saved map. ' +
+                  'In a full implementation, this would call the map_server to load a .pgm/.yaml map file.');
+        }
+
+        function setGoal() {
+            const x = parseFloat(document.getElementById('goal-x').value) || 0;
+            const y = parseFloat(document.getElementById('goal-y').value) || 0;
+            
+            if (robotController && robotController.simpleGoalTopic) {
+                const goal = new ROSLIB.Message({
+                    header: {
+                        frame_id: 'map',
+                        stamp: { 
+                            sec: Math.floor(Date.now() / 1000),
+                            nanosec: (Date.now() % 1000) * 1000000
+                        }
+                    },
+                    pose: {
+                        position: { x: x, y: y, z: 0 },
+                        orientation: { x: 0, y: 0, z: 0, w: 1 }
+                    }
+                });
+                
+                robotController.simpleGoalTopic.publish(goal);
+                robotController.currentGoal = { x, y };
+                
+                document.getElementById('nav-status').textContent = 'Navigating';
+                console.log(`Goal set to: (${x}, ${y})`);
+                
+                // Also try Nav2 action client
+                if (robotController.moveBaseActionClient) {
+                    const nav2Goal = new ROSLIB.Goal({
+                        actionClient: robotController.moveBaseActionClient,
+                        goalMessage: {
+                            pose: {
+                                header: {
+                                    frame_id: 'map',
+                                    stamp: { 
+                                        sec: Math.floor(Date.now() / 1000),
+                                        nanosec: (Date.now() % 1000) * 1000000
+                                    }
+                                },
+                                pose: {
+                                    position: { x: x, y: y, z: 0 },
+                                    orientation: { x: 0, y: 0, z: 0, w: 1 }
+                                }
+                            }
+                        }
+                    });
+                    
+                    nav2Goal.send();
+                }
+            }
+        }
+
+        function cancelGoal() {
+            if (robotController && robotController.moveBaseActionClient) {
+                robotController.moveBaseActionClient.cancel();
+                robotController.currentGoal = null;
+                document.getElementById('nav-status').textContent = 'Idle';
+                document.getElementById('goal-distance').textContent = '-- m';
+                console.log('Navigation goal cancelled');
+            }
+        }
+
+        function emergencyStop() {
+            console.log('EMERGENCY STOP activated!');
+            stopMove();
+            cancelGoal();
+            
+            // Send emergency stop to all relevant topics
+            if (robotController) {
+                robotController.publishVelocity(0, 0);
+            }
+            
+            alert('Emergency stop activated! All movement has been stopped.');
+        }
+
+        // Initialize the robot controller when page loads
+        window.addEventListener('load', () => {
+            robotController = new SLAMRobotController();
+        });
+    </script>
+</body>
+</html>
