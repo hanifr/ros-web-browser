@@ -1,9 +1,8 @@
-<!-- advanced_control.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Advanced Control Interface - Corporate Dashboard</title>
+    <title>Enhanced Advanced Control Interface - Robot Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <style>
@@ -24,10 +23,12 @@
             --text-muted: #94a3b8;
             --border-color: #475569;
             --border-light: #64748b;
+            --glow-blue: rgba(96, 165, 250, 0.3);
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
             --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+            --shadow-glow: 0 0 20px var(--glow-blue);
         }
 
         * {
@@ -38,18 +39,35 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--dark-background);
+            background: linear-gradient(135deg, var(--dark-background) 0%, #1e293b 100%);
             color: var(--text-primary);
             line-height: 1.6;
             font-size: 14px;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* Header */
         .header {
-            background: var(--card-background);
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -81,6 +99,13 @@
             justify-content: center;
             font-size: 24px;
             color: white;
+            box-shadow: var(--shadow-glow);
+            animation: logoGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: var(--shadow-glow); }
+            100% { box-shadow: 0 0 30px rgba(96, 165, 250, 0.5); }
         }
 
         .header-info h1 {
@@ -114,7 +139,7 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             white-space: nowrap;
             font-weight: 500;
         }
@@ -122,14 +147,14 @@
         .nav-link:hover {
             background: rgba(96, 165, 250, 0.2);
             border-color: var(--primary-blue);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         .nav-link.active {
             background: linear-gradient(135deg, var(--secondary-blue), var(--light-blue));
             border-color: var(--primary-blue);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-glow);
         }
 
         .nav-link.advanced {
@@ -149,12 +174,14 @@
             border-radius: 8px;
             font-size: 0.875rem;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .status-online {
             background: rgba(34, 197, 94, 0.1);
             color: var(--success-green);
             border: 1px solid rgba(34, 197, 94, 0.2);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
         }
 
         .status-offline {
@@ -163,11 +190,23 @@
             border: 1px solid rgba(248, 113, 113, 0.2);
         }
 
+        .status-connecting {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning-amber);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
         .status-indicator {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         /* Main Content */
@@ -182,17 +221,24 @@
         }
 
         .panel {
-            background: var(--card-background);
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
             border: 1px solid var(--border-color);
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl), 0 0 20px rgba(96, 165, 250, 0.1);
         }
 
         .panel-header {
             padding: 1.5rem 2rem;
             border-bottom: 1px solid var(--border-color);
-            background: var(--panel-background);
+            background: linear-gradient(135deg, var(--panel-background), rgba(51, 65, 85, 0.8));
         }
 
         .panel-title {
@@ -215,18 +261,22 @@
             margin: 1.5rem 0 1rem 0;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        /* 3D Viewer */
+        /* Enhanced 3D Viewer */
         #ros3d-container {
             width: 100%;
             height: 500px;
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             background: #000000;
             position: relative;
             overflow: hidden;
             margin-bottom: 1.5rem;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .viewer-overlay {
@@ -240,9 +290,24 @@
             color: var(--success-green);
             z-index: 100;
             font-family: 'Monaco', 'Menlo', monospace;
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
-        /* Controls */
+        .viewer-stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: var(--primary-blue);
+            z-index: 100;
+            font-family: 'Monaco', 'Menlo', monospace;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+        }
+
+        /* Enhanced Controls */
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -259,66 +324,99 @@
         .btn {
             padding: 1rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             font-size: 0.875rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.025em;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--secondary-blue), var(--light-blue));
             color: white;
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:hover {
             background: linear-gradient(135deg, var(--light-blue), #1e3a8a);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
         }
 
         .btn-danger {
             background: linear-gradient(135deg, var(--error-red), #dc2626);
             color: white;
+            box-shadow: var(--shadow-md);
         }
 
         .btn-danger:hover {
             background: linear-gradient(135deg, #dc2626, #b91c1c);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 0 15px rgba(248, 113, 113, 0.3);
         }
 
         .btn-special {
             background: linear-gradient(135deg, var(--warning-amber), #f59e0b);
             color: #1f2937;
+            box-shadow: var(--shadow-md);
         }
 
         .btn-special:hover {
             background: linear-gradient(135deg, #f59e0b, #d97706);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: var(--shadow-sm) !important;
         }
 
         /* Status Indicators */
         .status {
             padding: 1rem;
             margin: 1rem 0;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 500;
             font-size: 0.875rem;
             border-left: 4px solid;
+            transition: all 0.3s ease;
         }
 
         .status.connected {
             background: rgba(34, 197, 94, 0.1);
             color: var(--success-green);
             border-left-color: var(--success-green);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
         }
 
         .status.disconnected {
@@ -327,7 +425,13 @@
             border-left-color: var(--error-red);
         }
 
-        /* Sensor Grid */
+        .status.warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning-amber);
+            border-left-color: var(--warning-amber);
+        }
+
+        /* Enhanced Sensor Grid */
         .sensor-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -336,10 +440,28 @@
         }
 
         .sensor-card {
-            background: var(--surface-background);
+            background: linear-gradient(135deg, var(--surface-background), rgba(71, 85, 105, 0.8));
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sensor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--warning-amber));
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md), 0 0 15px rgba(96, 165, 250, 0.1);
         }
 
         .sensor-card h4 {
@@ -358,38 +480,45 @@
             font-weight: 500;
         }
 
-        /* Activity Log */
+        /* Enhanced Activity Log */
         .log {
-            background: var(--surface-background);
+            background: rgba(15, 23, 42, 0.8);
             padding: 1rem;
-            border-radius: 8px;
-            height: 250px;
+            border-radius: 12px;
+            height: 300px;
             overflow-y: auto;
             font-family: 'Monaco', 'Menlo', monospace;
             font-size: 0.75rem;
             border: 1px solid var(--border-color);
             color: var(--success-green);
             line-height: 1.4;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .log::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .log::-webkit-scrollbar-track {
             background: var(--card-background);
+            border-radius: 4px;
         }
 
         .log::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 3px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
         }
 
-        /* Keyboard Help */
+        .log::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-blue);
+        }
+
+        /* Enhanced Keyboard Help */
         .keyboard-help {
-            background: var(--surface-background);
+            background: linear-gradient(135deg, var(--surface-background), rgba(71, 85, 105, 0.8));
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin: 1rem 0;
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -399,11 +528,76 @@
         .keyboard-help kbd {
             background: var(--panel-background);
             padding: 0.25rem 0.5rem;
-            border-radius: 4px;
+            border-radius: 6px;
             font-family: monospace;
             color: var(--text-primary);
             border: 1px solid var(--border-color);
             font-size: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Control Panel Enhancements */
+        .control-mode-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: rgba(71, 85, 105, 0.3);
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .mode-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .speed-control {
+            margin: 1rem 0;
+        }
+
+        .speed-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--surface-background);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         /* Loading State */
@@ -419,16 +613,31 @@
         .loading::after {
             content: '';
             margin-left: 10px;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(96, 165, 250, 0.3);
-            border-top: 2px solid var(--primary-blue);
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(96, 165, 250, 0.3);
+            border-top: 3px solid var(--primary-blue);
             border-radius: 50%;
             animation: spin 1s infinite linear;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* Performance Indicator */
+        .performance-stats {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--success-green);
+            z-index: 1000;
+            border: 1px solid var(--border-color);
         }
 
         /* Responsive Design */
@@ -499,6 +708,10 @@
             #ros3d-container {
                 height: 300px;
             }
+
+            .log {
+                height: 200px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -510,7 +723,7 @@
     </style>
     
     <!-- Essential libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.89.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/eventemitter2@5.0.1/lib/eventemitter2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
 </head>
@@ -521,8 +734,8 @@
             <div class="logo-section">
                 <div class="logo">🚀</div>
                 <div class="header-info">
-                    <h1>Advanced Control Interface</h1>
-                    <p>3D Visualization • Robot Control • Real-time Monitoring</p>
+                    <h1>Enhanced Advanced Control Interface</h1>
+                    <p>3D Visualization • Smooth Robot Control • Real-time Monitoring • Performance Optimized</p>
                 </div>
             </div>
             
@@ -531,21 +744,21 @@
                 <a href="/" class="nav-link">
                     🏠 <span class="nav-text">Dashboard</span>
                 </a>
-                <a href="/physics" class="nav-link">
+                <a href="/pages/control.html" class="nav-link">
                     ⚙️ <span class="nav-text">Physics</span>
                 </a>
                 <a href="/material" class="nav-link">
                     📦 <span class="nav-text">Material</span>
                 </a>
-                <a href="/amh-excel" class="nav-link">
-                    📈 <span class="nav-text">Excel</span>
+                <a href="/pages/comparison.html" class="nav-link">
+                    📈 <span class="nav-text">Navigation</span>
                 </a>
                 <a href="/advanced" class="nav-link advanced active">
                     🚀 <span class="nav-text">Advanced</span>
                 </a>
             </nav>
             
-            <div id="connection-status" class="status-badge status-offline">
+            <div id="connection-status" class="status-badge status-connecting">
                 <div class="status-indicator"></div>
                 <span>Connecting to ROS</span>
             </div>
@@ -554,113 +767,159 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- 3D Visualization Panel -->
+        <!-- Enhanced 3D Visualization Panel -->
         <div class="panel">
             <div class="panel-header">
                 <h2 class="panel-title">
                     <span>🎯</span>
-                    3D Robot Visualization
+                    Enhanced 3D Robot Visualization
                 </h2>
             </div>
             <div class="panel-content">
                 <div id="ros3d-container">
-                    <div class="loading">Initializing 3D viewer...</div>
+                    <div class="loading">Initializing enhanced 3D viewer...</div>
                     <div class="viewer-overlay">
+                        <div>Enhanced Smooth Rendering • LERP Interpolation</div>
                         <div>Camera: Q/E - Up/Down | R - Reset</div>
                         <div>Mouse: Drag - Rotate | Wheel - Zoom</div>
+                    </div>
+                    <div class="viewer-stats">
+                        <div id="fps-counter">FPS: --</div>
+                        <div id="frame-time">Frame: --ms</div>
                     </div>
                 </div>
                 
                 <div id="robot-status" class="status disconnected">
-                    Loading robot model...
+                    Loading enhanced robot model...
                 </div>
             </div>
         </div>
 
-        <!-- Control Panel -->
+        <!-- Enhanced Control Panel -->
         <div class="panel">
             <div class="panel-header">
                 <h2 class="panel-title">
                     <span>🎮</span>
-                    Robot Control Center
+                    Enhanced Robot Control Center
                 </h2>
             </div>
             <div class="panel-content">
+                <!-- Control Mode Selector -->
+                <div class="control-mode-selector">
+                    <button class="mode-btn active" data-mode="manual">Manual</button>
+                    <button class="mode-btn" data-mode="autonomous">Autonomous</button>
+                    <button class="mode-btn" data-mode="waypoint">Waypoint</button>
+                </div>
+
+                <!-- Speed Control -->
+                <div class="speed-control">
+                    <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">Speed Control</h4>
+                    <input type="range" class="speed-slider" id="speed-slider" min="0.1" max="2.0" step="0.1" value="0.5">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                        <span>Slow</span>
+                        <span id="speed-value">0.5x</span>
+                        <span>Fast</span>
+                    </div>
+                </div>
+
                 <div class="controls">
                     <div class="control-section">
-                        <button class="btn btn-primary" onclick="RobotController.moveRobot('forward')">
+                        <button class="btn btn-primary" onclick="RobotController.moveRobot('forward')" data-key="w">
                             <span>⬆️</span>
                             Forward
                         </button>
-                        <button class="btn btn-primary" onclick="RobotController.moveRobot('backward')">
+                        <button class="btn btn-primary" onclick="RobotController.moveRobot('backward')" data-key="s">
                             <span>⬇️</span>
                             Backward
                         </button>
                     </div>
                     <div class="control-section">
-                        <button class="btn btn-primary" onclick="RobotController.moveRobot('left')">
+                        <button class="btn btn-primary" onclick="RobotController.moveRobot('left')" data-key="a">
                             <span>⬅️</span>
                             Turn Left
                         </button>
-                        <button class="btn btn-primary" onclick="RobotController.moveRobot('right')">
+                        <button class="btn btn-primary" onclick="RobotController.moveRobot('right')" data-key="d">
                             <span>➡️</span>
                             Turn Right
                         </button>
                     </div>
                     <div class="control-section">
-                        <button class="btn btn-danger" onclick="RobotController.stopRobot()">
+                        <button class="btn btn-danger" onclick="RobotController.stopRobot()" data-key="space">
                             <span>⏹️</span>
-                            Stop
+                            Emergency Stop
                         </button>
                         <button class="btn btn-special" onclick="RobotController.executeFigureEight()">
                             <span>∞</span>
-                            Figure-8
+                            Figure-8 Pattern
                         </button>
                     </div>
                 </div>
                 
                 <div class="keyboard-help">
-                    <strong>Keyboard Controls:</strong><br>
-                    <kbd>W/S</kbd> Forward/Backward • <kbd>A/D</kbd> Left/Right • <kbd>Space</kbd> Stop
+                    <strong>🎮 Enhanced Keyboard Controls:</strong><br>
+                    <kbd>W/S</kbd> Forward/Backward • <kbd>A/D</kbd> Left/Right • <kbd>Space</kbd> Emergency Stop • <kbd>R</kbd> Reset View
                 </div>
                 
-                <h3 class="section-title">📊 Sensor Data</h3>
+                <h3 class="section-title">📊 Real-time Sensor Data</h3>
                 <div class="sensor-grid">
                     <div class="sensor-card">
-                        <h4>Position</h4>
+                        <h4>🗺️ Position</h4>
                         <div id="position-data" class="sensor-value">X: 0.00, Y: 0.00</div>
                     </div>
                     <div class="sensor-card">
-                        <h4>Velocity</h4>
+                        <h4>🏃 Velocity</h4>
                         <div id="velocity-data" class="sensor-value">Lin: 0.00, Ang: 0.00</div>
                     </div>
                     <div class="sensor-card">
-                        <h4>Orientation</h4>
+                        <h4>🧭 Orientation</h4>
                         <div id="orientation-data" class="sensor-value">Yaw: 0.00°</div>
                     </div>
                     <div class="sensor-card">
-                        <h4>System Health</h4>
+                        <h4>🔋 System Health</h4>
                         <div id="battery-data" class="sensor-value">100%</div>
                     </div>
                 </div>
                 
-                <h3 class="section-title">📝 Activity Log</h3>
+                <h3 class="section-title">📝 Enhanced Activity Log</h3>
                 <div id="robot-log" class="log">
-                    Waiting for robot data...
+                    [SYSTEM] Enhanced Robot Control Interface initializing...
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- Performance Stats -->
+    <div class="performance-stats" id="performance-stats">
+        <div>FPS: <span id="perf-fps">--</span></div>
+        <div>Updates/s: <span id="perf-updates">--</span></div>
+        <div>Smooth: <span id="perf-smooth">ON</span></div>
+    </div>
+
     <script>
         // =============================================================================
-        // SIMPLE 3D ROBOT RENDERER
+        // ENHANCED ROBOT RENDERER WITH SMOOTH INTERPOLATION
         // =============================================================================
-        class SimpleRobotRenderer {
+        class EnhancedRobotRenderer {
             constructor(containerId) {
                 this.containerId = containerId;
-                this.robotPosition = { x: 0, y: 0, z: 0 };
-                this.robotOrientation = { yaw: 0 };
+                
+                // Performance monitoring
+                this.frameCount = 0;
+                this.lastFPSUpdate = Date.now();
+                this.fps = 0;
+                this.frameTime = 0;
+                
+                // Position states for smooth interpolation
+                this.targetPosition = { x: 0, y: 0, z: 0 };
+                this.targetOrientation = { yaw: 0 };
+                this.interpolatedPosition = { x: 0, y: 0, z: 0 };
+                this.interpolatedOrientation = { yaw: 0 };
+                
+                // Animation properties
+                this.clock = new THREE.Clock();
+                this.lerpFactor = 0.15; // Smoothing factor
+                
+                // Three.js objects
                 this.scene = null;
                 this.camera = null;
                 this.renderer = null;
@@ -669,14 +928,27 @@
                 this.init();
             }
             
+            // Custom LERP function for compatibility
+            lerp(start, end, factor) {
+                return start + (end - start) * factor;
+            }
+            
+            // Angle lerp with proper wrapping
+            lerpAngle(start, end, factor) {
+                let diff = end - start;
+                if (diff > Math.PI) diff -= 2 * Math.PI;
+                if (diff < -Math.PI) diff += 2 * Math.PI;
+                return start + diff * factor;
+            }
+            
             init() {
-                Logger.log('🎯 Initializing Simple 3D Renderer...');
+                Logger.log('🎯 Initializing Enhanced 3D Renderer with smooth interpolation...');
                 this.createScene();
                 this.createRobot();
                 this.setupControls();
-                this.startAnimation();
-                this.updateStatus('✅ Simple 3D renderer ready');
-                Logger.log('✅ Simple 3D Renderer initialized');
+                this.startEnhancedAnimationLoop();
+                this.updateStatus('✅ Enhanced smooth 3D renderer ready');
+                Logger.log('✅ Enhanced 3D Renderer initialized successfully');
             }
             
             createScene() {
@@ -684,11 +956,15 @@
                 const rect = container.getBoundingClientRect();
                 
                 this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.Fog(0x111111, 5, 15); // Add atmospheric fog
+                
                 this.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.1, 1000);
-                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 
                 this.renderer.setSize(rect.width, rect.height);
                 this.renderer.setClearColor(0x111111);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Enhanced shadows
                 
                 container.innerHTML = '';
                 container.appendChild(this.renderer.domElement);
@@ -696,41 +972,63 @@
                 const overlay = document.createElement('div');
                 overlay.className = 'viewer-overlay';
                 overlay.innerHTML = `
-                    <div>Professional 3D View</div>
-                    <div>Mouse: Drag to rotate | Wheel to zoom</div>
+                    <div>🚀 Enhanced Smooth Rendering Active</div>
+                    <div>🎯 LERP Interpolation: ON</div>
+                    <div>🎮 Mouse: Drag to rotate | Wheel to zoom</div>
                 `;
                 container.appendChild(overlay);
+                
+                const stats = document.createElement('div');
+                stats.className = 'viewer-stats';
+                stats.innerHTML = `
+                    <div id="fps-counter">FPS: --</div>
+                    <div id="frame-time">Frame: --ms</div>
+                `;
+                container.appendChild(stats);
                 
                 this.worldGroup = new THREE.Group();
                 this.worldGroup.rotation.x = Math.PI / 2;
                 
-                this.camera.position.set(0, -3, 1);
+                this.camera.position.set(0, -4, 2);
                 this.camera.lookAt(0, 0, 0);
                 
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+                // Enhanced lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
                 this.scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-                directionalLight.position.set(1, 1, 1);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(2, 2, 3);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
                 this.scene.add(directionalLight);
                 
+                const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x8B4513, 0.3);
+                this.scene.add(hemisphereLight);
+                
+                // Enhanced grid
                 const gridHelper = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
                 this.worldGroup.add(gridHelper);
                 
-                const axesHelper = new THREE.AxesHelper(1);
+                const axesHelper = new THREE.AxesHelper(1.5);
                 this.worldGroup.add(axesHelper);
                 
                 this.scene.add(this.worldGroup);
+                
+                // Handle window resize
+                window.addEventListener('resize', () => this.handleResize());
             }
             
             createRobot() {
                 this.robotGroup = new THREE.Group();
                 
-                // Robot base (blue box)
+                // Enhanced robot base with better materials
                 const baseGeometry = new THREE.BoxGeometry(0.5, 0.3, 0.12);
                 const baseMaterial = new THREE.MeshStandardMaterial({
                     color: 0x007acc,
-                    roughness: 0.4,
-                    metalness: 0.3
+                    roughness: 0.3,
+                    metalness: 0.4,
+                    envMapIntensity: 0.5
                 });
                 const base = new THREE.Mesh(baseGeometry, baseMaterial);
                 base.position.z = 0.05;
@@ -738,45 +1036,70 @@
                 base.receiveShadow = true;
                 this.robotGroup.add(base);
                 
-                // Wheels
+                // Enhanced wheels
                 const wheelGeometry = new THREE.CylinderGeometry(0.09, 0.09, 0.05, 32);
                 const wheelMaterial = new THREE.MeshStandardMaterial({
                     color: 0x222222,
-                    roughness: 0.6,
-                    metalness: 0.2
+                    roughness: 0.8,
+                    metalness: 0.1
                 });
 
-                const axleMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+                const axleMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0xaaaaaa,
+                    metalness: 0.7,
+                    roughness: 0.2
+                });
                 
                 [0.175, -0.175].forEach(y => {
                     const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
                     wheel.position.set(0, y, 0.02);
-                    wheel.rotation.z = 0;
+                    wheel.castShadow = true;
+                    wheel.receiveShadow = true;
                     this.robotGroup.add(wheel);
                     
                     const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.028, 0.06, 16), axleMaterial);
-                    axle.rotation.z = 0;
                     axle.position.copy(wheel.position);
+                    axle.castShadow = true;
                     this.robotGroup.add(axle);
                 });
                 
-                // Caster
+                // Enhanced caster
                 const casterGeometry = new THREE.SphereGeometry(0.045, 24, 24);
                 const casterMaterial = new THREE.MeshStandardMaterial({
                     color: 0x888888,
-                    roughness: 0.8
+                    roughness: 0.6,
+                    metalness: 0.3
                 });
                 const caster = new THREE.Mesh(casterGeometry, casterMaterial);
                 caster.position.set(-0.2, 0, 0.045);
+                caster.castShadow = true;
+                caster.receiveShadow = true;
                 this.robotGroup.add(caster);
                 
-                // Direction arrow
+                // Enhanced direction arrow
                 const arrowGeometry = new THREE.ConeGeometry(0.05, 0.15, 8);
-                const arrowMaterial = new THREE.MeshLambertMaterial({ color: 0xff3333 });
+                const arrowMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0xff3333,
+                    emissive: 0x440000
+                });
                 const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
                 arrow.position.set(0.33, 0, 0.05);
                 arrow.rotation.z = -Math.PI / 2;
                 this.robotGroup.add(arrow);
+                
+                // Add robot sensors (visual enhancement)
+                const sensorGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+                const sensorMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x00ff00,
+                    emissive: 0x002200
+                });
+                
+                // Front sensors
+                for (let i = 0; i < 3; i++) {
+                    const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
+                    sensor.position.set(0.25, (i - 1) * 0.1, 0.08);
+                    this.robotGroup.add(sensor);
+                }
                 
                 this.scene.add(this.robotGroup);
                 this.updateRobotPose();
@@ -814,7 +1137,8 @@
                 });
                 
                 canvas.addEventListener('wheel', (e) => {
-                    this.camera.position.multiplyScalar(e.deltaY > 0 ? 1.1 : 0.9);
+                    const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+                    this.camera.position.multiplyScalar(zoomFactor);
                     e.preventDefault();
                 });
                 
@@ -823,51 +1147,144 @@
                     
                     switch(e.key.toLowerCase()) {
                         case 'q':
-                            this.camera.position.y += 0.1;
+                            this.camera.position.z += 0.2;
                             this.camera.lookAt(0, 0, 0);
                             e.preventDefault();
                             break;
                         case 'e':
-                            this.camera.position.y -= 0.1;
+                            this.camera.position.z -= 0.2;
                             this.camera.lookAt(0, 0, 0);
                             e.preventDefault();
                             break;
                         case 'r':
-                            this.camera.position.set(3, 3, 3);
+                            this.camera.position.set(0, -4, 2);
                             this.camera.lookAt(0, 0, 0);
+                            Logger.log('🎯 Camera view reset');
                             e.preventDefault();
                             break;
                     }
                 });
             }
             
-            startAnimation() {
+            // ENHANCED: Frame-synchronized animation loop with performance monitoring
+            startEnhancedAnimationLoop() {
+                const startTime = Date.now();
+                
                 const animate = () => {
                     requestAnimationFrame(animate);
+                    
+                    const frameStart = performance.now();
+                    
+                    // Get delta time for frame-rate independent animation
+                    const deltaTime = this.clock.getDelta();
+                    
+                    // Apply smooth interpolation
+                    this.updateSmoothInterpolation(deltaTime);
+                    
+                    // Update robot visual position
+                    this.updateRobotPose();
+                    
+                    // Render the scene
                     this.renderer.render(this.scene, this.camera);
+                    
+                    // Performance monitoring
+                    this.updatePerformanceStats(frameStart);
                 };
                 animate();
+                
+                Logger.log('🚀 Enhanced animation loop started with smooth interpolation');
+            }
+            
+            // ENHANCED: Smooth interpolation with adaptive lerp factor
+            updateSmoothInterpolation(deltaTime) {
+                // Frame-rate independent lerp factor
+                const targetFPS = 60;
+                const adaptiveLerpFactor = Math.min(1.0, this.lerpFactor * (deltaTime * targetFPS));
+                
+                // Smooth position interpolation
+                this.interpolatedPosition.x = this.lerp(
+                    this.interpolatedPosition.x, 
+                    this.targetPosition.x, 
+                    adaptiveLerpFactor
+                );
+                this.interpolatedPosition.y = this.lerp(
+                    this.interpolatedPosition.y, 
+                    this.targetPosition.y, 
+                    adaptiveLerpFactor
+                );
+                this.interpolatedPosition.z = this.lerp(
+                    this.interpolatedPosition.z, 
+                    this.targetPosition.z, 
+                    adaptiveLerpFactor
+                );
+                
+                // Smooth orientation interpolation with angle wrapping
+                this.interpolatedOrientation.yaw = this.lerpAngle(
+                    this.interpolatedOrientation.yaw,
+                    this.targetOrientation.yaw,
+                    adaptiveLerpFactor
+                );
             }
             
             updateRobotPose() {
                 if (this.robotGroup) {
+                    // Use interpolated position for smooth visuals
                     this.robotGroup.position.set(
-                        this.robotPosition.x, 
-                        this.robotPosition.y, 
-                        this.robotPosition.z + 0.1
+                        this.interpolatedPosition.x, 
+                        this.interpolatedPosition.y, 
+                        this.interpolatedPosition.z + 0.1
                     );
-                    this.robotGroup.rotation.z = this.robotOrientation.yaw;
+                    this.robotGroup.rotation.z = this.interpolatedOrientation.yaw;
                 }
             }
             
+            updatePerformanceStats(frameStart) {
+                this.frameCount++;
+                const frameEnd = performance.now();
+                this.frameTime = frameEnd - frameStart;
+                
+                const now = Date.now();
+                if (now - this.lastFPSUpdate >= 1000) {
+                    this.fps = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastFPSUpdate = now;
+                    
+                    // Update UI
+                    const fpsElement = document.getElementById('fps-counter');
+                    const frameTimeElement = document.getElementById('frame-time');
+                    const perfFps = document.getElementById('perf-fps');
+                    
+                    if (fpsElement) fpsElement.textContent = `FPS: ${this.fps}`;
+                    if (frameTimeElement) frameTimeElement.textContent = `Frame: ${this.frameTime.toFixed(1)}ms`;
+                    if (perfFps) perfFps.textContent = this.fps;
+                }
+            }
+            
+            handleResize() {
+                const container = document.getElementById(this.containerId);
+                const rect = container.getBoundingClientRect();
+                
+                this.camera.aspect = rect.width / rect.height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(rect.width, rect.height);
+            }
+            
+            // Public methods for setting robot position
+            setRobotTarget(x, y, z = 0) {
+                this.targetPosition = { x, y, z };
+            }
+            
+            setRobotTargetOrientation(yaw) {
+                this.targetOrientation.yaw = yaw;
+            }
+            
+            // Legacy compatibility methods
             setRobotPosition(x, y, z = 0) {
-                this.robotPosition = { x, y, z };
-                this.updateRobotPose();
+                this.setRobotTarget(x, y, z);
             }
             
             setRobotOrientation(yaw) {
-                this.robotOrientation.yaw = yaw;
-                this.updateRobotPose();
+                this.setRobotTargetOrientation(yaw);
             }
             
             updateStatus(message) {
@@ -880,7 +1297,7 @@
         }
         
         // =============================================================================
-        // ROBOT CONTROLLER
+        // ENHANCED ROBOT CONTROLLER
         // =============================================================================
         class RobotController {
             static ros = null;
@@ -889,42 +1306,91 @@
             static isConnected = false;
             static renderer = null;
             
+            // Position tracking
+            static currentPosition = { x: 0, y: 0 };
+            static currentTheta = 0;
+            
+            // Control parameters
+            static speedMultiplier = 0.5;
+            static controlMode = 'manual';
+            
+            // Update tracking for performance
+            static updateCounter = 0;
+            static lastPerformanceUpdate = 0;
+            static updatesPerSecond = 0;
+            
             // Figure-8 control properties
             static figureEightActive = false;
             static figureEightStartTime = 0;
             static figureEightTimer = null;
-            static currentPosition = { x: 0, y: 0 };
-            static currentTheta = 0;
             
             static init() {
-                Logger.log('🤖 Initializing Robot Controller...');
+                Logger.log('🤖 Initializing Enhanced Robot Controller...');
+                this.setupUI();
                 this.connectToROS();
+            }
+            
+            static setupUI() {
+                // Speed slider
+                const speedSlider = document.getElementById('speed-slider');
+                const speedValue = document.getElementById('speed-value');
+                
+                if (speedSlider && speedValue) {
+                    speedSlider.addEventListener('input', (e) => {
+                        this.speedMultiplier = parseFloat(e.target.value);
+                        speedValue.textContent = `${this.speedMultiplier}x`;
+                        Logger.log(`🎛️ Speed set to ${this.speedMultiplier}x`);
+                    });
+                }
+                
+                // Control mode buttons
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.controlMode = e.target.dataset.mode;
+                        Logger.log(`🎮 Control mode: ${this.controlMode}`);
+                    });
+                });
             }
             
             static connectToROS() {
                 const rosUrl = 'ws://' + window.location.hostname + ':9090';
-                // const rosUrl = 'ws://localhost:9090';
                 Logger.log('🚀 Connecting to ROS Bridge at ' + rosUrl);
+                
+                this.updateConnectionStatus('connecting');
                 
                 this.ros = new ROSLIB.Ros({ url: rosUrl });
                 
                 this.ros.on('connection', () => {
                     this.isConnected = true;
-                    Logger.log('✅ Connected to ROS Bridge');
+                    Logger.log('✅ Connected to ROS Bridge successfully');
                     this.setupROSCommunication();
-                    this.updateConnectionStatus(true);
+                    this.updateConnectionStatus('online');
                 });
                 
                 this.ros.on('error', (error) => {
                     this.isConnected = false;
                     Logger.log('❌ ROS Connection Error: ' + error);
-                    this.updateConnectionStatus(false, error.toString());
+                    this.updateConnectionStatus('offline', error.toString());
+                    
+                    // Retry connection after 3 seconds
+                    setTimeout(() => {
+                        Logger.log('🔄 Attempting to reconnect...');
+                        this.connectToROS();
+                    }, 3000);
                 });
                 
                 this.ros.on('close', () => {
                     this.isConnected = false;
                     Logger.log('🔌 Disconnected from ROS Bridge');
-                    this.updateConnectionStatus(false);
+                    this.updateConnectionStatus('offline');
+                    
+                    // Attempt reconnection
+                    setTimeout(() => {
+                        Logger.log('🔄 Attempting to reconnect...');
+                        this.connectToROS();
+                    }, 2000);
                 });
             }
             
@@ -935,20 +1401,25 @@
                     messageType: 'geometry_msgs/Twist'
                 });
                 
+                // ENHANCED: Properly configured odometry subscription
                 this.odomSubscriber = new ROSLIB.Topic({
                     ros: this.ros,
                     name: '/odom',
-                    messageType: 'nav_msgs/Odometry'
+                    messageType: 'nav_msgs/Odometry',
+                    queue_length: 1,
+                    throttle_rate: 100  // 10Hz for smooth updates
                 });
                 
                 this.odomSubscriber.subscribe((message) => {
                     this.handleOdometryUpdate(message);
                 });
                 
-                Logger.log('✅ ROS communication setup complete');
+                Logger.log('✅ Enhanced ROS communication setup complete');
             }
             
             static handleOdometryUpdate(odom) {
+                this.updateCounter++;
+                
                 const pos = odom.pose.pose.position;
                 const orientation = odom.pose.pose.orientation;
                 
@@ -957,15 +1428,30 @@
                     1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z)
                 );
                 
+                // Update control algorithm state
                 this.currentPosition = { x: pos.x, y: pos.y };
                 this.currentTheta = yaw;
                 
+                // ENHANCED: Send target position for smooth interpolation
                 if (this.renderer) {
-                    this.renderer.setRobotPosition(pos.x, pos.y, pos.z);
-                    this.renderer.setRobotOrientation(yaw);
+                    this.renderer.setRobotTarget(pos.x, pos.y, pos.z);
+                    this.renderer.setRobotTargetOrientation(yaw);
                 }
                 
-                SensorDisplay.updateSensorData(odom);
+                // Update sensor display and performance stats
+                const now = Date.now();
+                if (now - this.lastPerformanceUpdate >= 1000) {
+                    this.updatesPerSecond = this.updateCounter;
+                    this.updateCounter = 0;
+                    this.lastPerformanceUpdate = now;
+                    
+                    // Update performance display
+                    const perfUpdates = document.getElementById('perf-updates');
+                    if (perfUpdates) perfUpdates.textContent = this.updatesPerSecond;
+                    
+                    // Update sensor data
+                    SensorDisplay.updateSensorData(odom);
+                }
             }
             
             static moveRobot(direction) {
@@ -974,28 +1460,35 @@
                     return;
                 }
                 
+                if (this.controlMode !== 'manual') {
+                    Logger.log('⚠️ Manual control disabled - switch to manual mode');
+                    return;
+                }
+                
                 const twist = new ROSLIB.Message({
                     linear: { x: 0, y: 0, z: 0 },
                     angular: { x: 0, y: 0, z: 0 }
                 });
                 
+                const speed = this.speedMultiplier;
+                
                 switch(direction) {
                     case 'forward':
-                        twist.linear.x = 0.5;
+                        twist.linear.x = speed;
                         break;
                     case 'backward':
-                        twist.linear.x = -0.5;
+                        twist.linear.x = -speed;
                         break;
                     case 'left':
-                        twist.angular.z = 0.5;
+                        twist.angular.z = speed;
                         break;
                     case 'right':
-                        twist.angular.z = -0.5;
+                        twist.angular.z = -speed;
                         break;
                 }
                 
                 this.cmdVelPublisher.publish(twist);
-                Logger.log('🎮 Moving ' + direction);
+                Logger.log(`🎮 Moving ${direction} at ${speed}x speed`);
             }
             
             static stopRobot() {
@@ -1014,16 +1507,7 @@
                 });
                 
                 this.cmdVelPublisher.publish(twist);
-                Logger.log('⏹️ Robot stopped');
-            }
-            
-            // Figure-8 Pattern Functions
-            static generateFigureEightPath(t) {
-                const scale_x = 2.0;
-                const scale_y = 1.0;
-                const path_x = scale_x * Math.sin(t);
-                const path_y = scale_y * Math.sin(t) * Math.cos(t);
-                return { x: path_x, y: path_y };
+                Logger.log('🛑 Emergency stop activated');
             }
             
             static executeFigureEight() {
@@ -1038,9 +1522,13 @@
                     return;
                 }
                 
-                Logger.log('∞ Starting Figure-8 pattern');
+                Logger.log('∞ Starting enhanced Figure-8 pattern');
                 this.figureEightActive = true;
                 this.figureEightStartTime = Date.now();
+                
+                // Update button text
+                const figureBtn = document.querySelector('[onclick*="executeFigureEight"]');
+                if (figureBtn) figureBtn.innerHTML = '<span>⏹️</span>Stop Figure-8';
                 
                 this.figureEightControlLoop();
             }
@@ -1053,7 +1541,19 @@
                     this.figureEightTimer = null;
                 }
                 
+                // Update button text
+                const figureBtn = document.querySelector('[onclick*="executeFigureEight"]');
+                if (figureBtn) figureBtn.innerHTML = '<span>∞</span>Figure-8 Pattern';
+                
                 Logger.log('✅ Figure-8 pattern stopped');
+            }
+            
+            static generateFigureEightPath(t) {
+                const scale_x = 2.0 * this.speedMultiplier;
+                const scale_y = 1.0 * this.speedMultiplier;
+                const path_x = scale_x * Math.sin(t);
+                const path_y = scale_y * Math.sin(t) * Math.cos(t);
+                return { x: path_x, y: path_y };
             }
             
             static figureEightControlLoop() {
@@ -1080,14 +1580,14 @@
                 let heading_error = target_heading - this.currentTheta;
                 heading_error = Math.atan2(Math.sin(heading_error), Math.cos(heading_error));
                 
-                const kp_v = 2.0;
-                const kp_omega = 5.0;
+                const kp_v = 2.0 * this.speedMultiplier;
+                const kp_omega = 5.0 * this.speedMultiplier;
                 
                 let v = kp_v * distance;
                 let omega = kp_omega * heading_error;
                 
-                v = Math.max(Math.min(v, 1.0), -1.0);
-                omega = Math.max(Math.min(omega, 2.0), -2.0);
+                v = Math.max(Math.min(v, 2.0), -2.0);
+                omega = Math.max(Math.min(omega, 3.0), -3.0);
                 
                 this.sendVelocityCommand(v, omega);
                 
@@ -1109,16 +1609,24 @@
                 this.cmdVelPublisher.publish(twist);
             }
             
-            static updateConnectionStatus(connected, errorMsg = '') {
+            static updateConnectionStatus(status, errorMsg = '') {
                 const statusElement = document.getElementById('connection-status');
                 if (statusElement) {
-                    if (connected) {
-                        statusElement.className = 'status-badge status-online';
-                        statusElement.innerHTML = '<div class="status-indicator"></div><span>ROS Connected</span>';
-                    } else {
-                        statusElement.className = 'status-badge status-offline';
-                        const message = errorMsg ? 'ROS Error' : 'ROS Offline';
-                        statusElement.innerHTML = `<div class="status-indicator"></div><span>${message}</span>`;
+                    switch(status) {
+                        case 'online':
+                            statusElement.className = 'status-badge status-online';
+                            statusElement.innerHTML = '<div class="status-indicator"></div><span>ROS Connected</span>';
+                            break;
+                        case 'connecting':
+                            statusElement.className = 'status-badge status-connecting';
+                            statusElement.innerHTML = '<div class="status-indicator"></div><span>Connecting...</span>';
+                            break;
+                        case 'offline':
+                        default:
+                            statusElement.className = 'status-badge status-offline';
+                            const message = errorMsg ? 'ROS Error' : 'ROS Offline';
+                            statusElement.innerHTML = `<div class="status-indicator"></div><span>${message}</span>`;
+                            break;
                     }
                 }
             }
@@ -1129,7 +1637,7 @@
         }
         
         // =============================================================================
-        // SENSOR DISPLAY
+        // ENHANCED SENSOR DISPLAY
         // =============================================================================
         class SensorDisplay {
             static updateSensorData(odom) {
@@ -1143,24 +1651,48 @@
                     1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z)
                 ) * 180 / Math.PI;
                 
-                document.getElementById('position-data').textContent = 
-                    `X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}`;
+                // Update sensor displays with smooth values
+                const posElement = document.getElementById('position-data');
+                const velElement = document.getElementById('velocity-data');
+                const orientElement = document.getElementById('orientation-data');
+                const batteryElement = document.getElementById('battery-data');
                 
-                document.getElementById('velocity-data').textContent = 
-                    `Lin: ${Math.sqrt(vel.x*vel.x + vel.y*vel.y).toFixed(2)}, Ang: ${angVel.z.toFixed(2)}`;
+                if (posElement) {
+                    posElement.textContent = `X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}`;
+                }
                 
-                document.getElementById('orientation-data').textContent = 
-                    `Yaw: ${yaw.toFixed(1)}°`;
+                if (velElement) {
+                    const linearVel = Math.sqrt(vel.x*vel.x + vel.y*vel.y);
+                    velElement.textContent = `Lin: ${linearVel.toFixed(2)}, Ang: ${angVel.z.toFixed(2)}`;
+                }
                 
-                const battery = Math.max(50, 100 - Math.abs(pos.x + pos.y) * 2);
-                document.getElementById('battery-data').textContent = `${battery.toFixed(0)}%`;
+                if (orientElement) {
+                    orientElement.textContent = `Yaw: ${yaw.toFixed(1)}°`;
+                }
+                
+                if (batteryElement) {
+                    const battery = Math.max(50, 100 - Math.abs(pos.x + pos.y) * 2);
+                    batteryElement.textContent = `${battery.toFixed(0)}%`;
+                    
+                    // Change color based on battery level
+                    if (battery > 75) {
+                        batteryElement.style.color = 'var(--success-green)';
+                    } else if (battery > 25) {
+                        batteryElement.style.color = 'var(--warning-amber)';
+                    } else {
+                        batteryElement.style.color = 'var(--error-red)';
+                    }
+                }
             }
         }
         
         // =============================================================================
-        // LOGGER
+        // ENHANCED LOGGER
         // =============================================================================
         class Logger {
+            static maxLogEntries = 100;
+            static logCount = 0;
+            
             static log(message) {
                 console.log(message);
                 const logElement = document.getElementById('robot-log');
@@ -1168,46 +1700,86 @@
                     const timestamp = new Date().toLocaleTimeString();
                     const logEntry = `[${timestamp}] ${message}\n`;
                     logElement.textContent += logEntry;
+                    
+                    // Keep log manageable
+                    this.logCount++;
+                    if (this.logCount > this.maxLogEntries) {
+                        const lines = logElement.textContent.split('\n');
+                        logElement.textContent = lines.slice(-this.maxLogEntries).join('\n');
+                        this.logCount = this.maxLogEntries;
+                    }
+                    
                     logElement.scrollTop = logElement.scrollHeight;
                 }
             }
         }
         
         // =============================================================================
-        // KEYBOARD CONTROLS
+        // ENHANCED KEYBOARD CONTROLS
         // =============================================================================
         class KeyboardController {
+            static pressedKeys = new Set();
+            static keyRepeatInterval = null;
+            
             static init() {
                 document.addEventListener('keydown', (event) => {
                     if (event.target.tagName.toLowerCase() === 'input') return;
                     
-                    switch(event.key.toLowerCase()) {
-                        case 'w':
-                        case 'arrowup':
-                            RobotController.moveRobot('forward');
-                            event.preventDefault();
-                            break;
-                        case 's':
-                        case 'arrowdown':
-                            RobotController.moveRobot('backward');
-                            event.preventDefault();
-                            break;
-                        case 'a':
-                        case 'arrowleft':
-                            RobotController.moveRobot('left');
-                            event.preventDefault();
-                            break;
-                        case 'd':
-                        case 'arrowright':
-                            RobotController.moveRobot('right');
-                            event.preventDefault();
-                            break;
-                        case ' ':
-                            RobotController.stopRobot();
-                            event.preventDefault();
-                            break;
+                    const key = event.key.toLowerCase();
+                    
+                    if (!this.pressedKeys.has(key)) {
+                        this.pressedKeys.add(key);
+                        this.handleKeyPress(key, event);
+                    }
+                    
+                    // Prevent default for robot control keys
+                    if (['w', 's', 'a', 'd', ' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+                        event.preventDefault();
                     }
                 });
+                
+                document.addEventListener('keyup', (event) => {
+                    const key = event.key.toLowerCase();
+                    this.pressedKeys.delete(key);
+                    
+                    // Stop robot when movement keys are released
+                    if (['w', 's', 'a', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+                        if (!this.hasMovementKeys()) {
+                            RobotController.stopRobot();
+                        }
+                    }
+                });
+                
+                Logger.log('⌨️ Enhanced keyboard controls initialized');
+            }
+            
+            static hasMovementKeys() {
+                const movementKeys = ['w', 's', 'a', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+                return movementKeys.some(key => this.pressedKeys.has(key));
+            }
+            
+            static handleKeyPress(key, event) {
+                switch(key) {
+                    case 'w':
+                    case 'arrowup':
+                        RobotController.moveRobot('forward');
+                        break;
+                    case 's':
+                    case 'arrowdown':
+                        RobotController.moveRobot('backward');
+                        break;
+                    case 'a':
+                    case 'arrowleft':
+                        RobotController.moveRobot('left');
+                        break;
+                    case 'd':
+                    case 'arrowright':
+                        RobotController.moveRobot('right');
+                        break;
+                    case ' ':
+                        RobotController.stopRobot();
+                        break;
+                }
             }
         }
         
@@ -1236,7 +1808,7 @@
         // INITIALIZATION
         // =============================================================================
         window.addEventListener('load', function() {
-            Logger.log('🚀 Starting Advanced Control Interface...');
+            Logger.log('🚀 Starting Enhanced Advanced Control Interface...');
             
             if (typeof THREE === 'undefined' || typeof ROSLIB === 'undefined') {
                 Logger.log('⏳ Waiting for libraries to load...');
@@ -1244,14 +1816,21 @@
                 return;
             }
             
-            // Initialize components
-            const renderer = new SimpleRobotRenderer('ros3d-container');
+            // Initialize all components
+            const renderer = new EnhancedRobotRenderer('ros3d-container');
             RobotController.setRenderer(renderer);
             RobotController.init();
             KeyboardController.init();
             updateNavigation();
             
-            Logger.log('✅ Corporate Advanced Control Interface initialized');
+            // Update performance indicator
+            const perfSmooth = document.getElementById('perf-smooth');
+            if (perfSmooth) perfSmooth.textContent = 'ON';
+            
+            Logger.log('✅ Enhanced Advanced Control Interface fully initialized');
+            Logger.log('🎯 Smooth interpolation: ACTIVE');
+            Logger.log('📊 Performance monitoring: ACTIVE');
+            Logger.log('🎮 Enhanced controls: READY');
         });
 
         // Handle page visibility changes
@@ -1259,6 +1838,11 @@
             if (!document.hidden) {
                 updateNavigation();
             }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            // The renderer handles its own resize in handleResize()
         });
     </script>
 </body>
